@@ -1,15 +1,11 @@
 #include <iostream>
-#include <fstream>
-#include <string>
+#include <vector>
+#include <algorithm>
 #include <cmath>
+
 #include "TFile.h"
-#include "TClonesArray.h"
 #include "TTree.h"
-#include "TNtuple.h"
-#include "TRandom.h"
 #include "TLorentzVector.h"
-
-
 
 #include "phys_constants.h"
 #include "StBTofUtil/tofPathLength.hh"
@@ -17,7 +13,6 @@
 #include "StPicoEvent/StPicoDst.h"
 #include "StPicoEvent/StPicoEvent.h"
 #include "StPicoEvent/StPicoTrack.h"
-//#include "StPicoD0EventMaker/StPicoD0Event.h"
 #include "StKaonPion.h"
 #include "StPicoD0JetAnaMaker.h"
 #include "StPicoEvent/StPicoBTofPidTraits.h"
@@ -29,77 +24,30 @@
 #include "StEmcRawMaker/defines.h"
 #include "StEmcRawMaker/StBemcTables.h"
 #include "Calibration2016.h"
-//////Refit include lib
 #include "PhysicalConstants.h"
 #include "StThreeVectorF.hh"
 #include "StLorentzVectorD.hh"
-#include "TH1F.h"
-#include "TH2F.h"
-#include "TH3D.h"
-#include "TF1.h"
-#include "TFile.h"
 #include "StEvent/StDcaGeometry.h"
-//
-#include <vector>
-#include <stdio.h>
-#include <time.h>
-#include <algorithm>
-#include <sstream>
-#include <iomanip>
-#include <cmath>
-//---------------------------------
-#include "TRandom.h"
-#include "TRandom3.h"
-//---------------------------------
-#include <fastjet/config.h>
+
+#include "StFJWrapper.h"
 #include <fastjet/PseudoJet.hh>
 #include <fastjet/JetDefinition.hh>
-#include <fastjet/ClusterSequence.hh>
 #include <fastjet/ClusterSequenceArea.hh>
-//#ifdef FASTJET_VERSION
 #include <fastjet/Selector.hh>
-#include <fastjet/tools/Subtractor.hh>
-#include <fastjet/tools/Recluster.hh>
 #include <fastjet/tools/JetMedianBackgroundEstimator.hh>
-#include <fastjet/PseudoJet.hh>  // Pro třídu PseudoJet
-#include <fastjet/ClusterSequence.hh>  // Pro klasické metody clusteringu (např. k nejbližší sousedství)
-#include <fastjet/contrib/ConstituentSubtractor.hh>  // Pro ConstituentSubtractor
-#include <fastjet/Selector.hh>  // Pro práci s selektory
-#include <fastjet/JetDefinition.hh>  // Pro definici jetů (třeba k-means, anti-kt atd.)
-#include <fastjet/AreaDefinition.hh>  // Pro definici plochy (area) v analýzách
-#include <fastjet/tools/JetMedianBackgroundEstimator.hh> 
+#include <fastjet/contrib/ConstituentSubtractor.hh>
+#include <fastjet/contrib/IterativeConstituentSubtractor.hh>
+#include <fastjet/contrib/RescalingClasses.hh>
+#include <fastjet/contrib/GenericSubtractor.hh>
 
-#include "fastjet/ClusterSequence.hh"
-#include "fastjet/Selector.hh"
-#include "fastjet/tools/GridMedianBackgroundEstimator.hh"
-#include "fastjet/contrib/IterativeConstituentSubtractor.hh" 
-#include "fastjet/contrib/RescalingClasses.hh"
-#include "fastjet/contrib/GenericSubtractor.hh"
-#include "fastjet/contrib/ShapeWithPartition.hh"
 #include "StRoot/StEmcUtil/projection/StEmcPosition.h"
-//To delete
-#include "StRoot/StRefMultCorr/StRefMultCorr.h"
-#include "StRoot/StRefMultCorr/CentralityMaker.h"
-//#include <iomanip>
-//#include <unordered_set>
-//#include <sstream>
-//#define DEBUG_SHAPE_DUMP
-
-
-// jet includes
 #include "FJ_includes.h"
-#define Error(...) ::Error(__VA_ARGS__)
-//#include "StJetShape.h"
-#undef Error
-//#include "StJetPicoDefinitions.h"
 #include "StFJAngularityDefinition.h"
-//#include "/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alex_install/install/fastjet-contrib-install/include/fastjet/contrib/SignalFreeBackgroundEstimator.hh"
+
+#define Error(...) ::Error(__VA_ARGS__)
+#undef Error
+
 using namespace std;
-//using namespace fastjet;
-//namespace fj = fastjet;
-
-
-//-------------------------------------
 
 ClassImp(StPicoD0JetAnaMaker)
 
@@ -112,8 +60,6 @@ StPicoD0JetAnaMaker::StPicoD0JetAnaMaker(char const * name, char const * outName
           mYear(pYear),
           picoDst(NULL){}
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-//--------Event-plane---------------
 Int_t StPicoD0JetAnaMaker::EP_IsGoodTrack(StPicoTrack *trk, TVector3 pVertex){
 
 	enum Position {West = -1, East = 1};
@@ -151,481 +97,62 @@ return Side;
 
 void StPicoD0JetAnaMaker::CalculateEventPlane(){
 
+	//Primary vertex
+	TVector3 prVertex = picoDst->event()->primaryVertex();
+	//Q-vectors
+	Double_t Q_1 = 0;
+	Double_t Q_2 = 0;
 
+	for (UInt_t iTrack = 0; iTrack < picoDst->numberOfTracks(); iTrack++){
+		StPicoTrack *trk = static_cast<StPicoTrack *>(picoDst->track(iTrack));
+		if (!trk) continue;
+		
+		Double_t Goodtrack = EP_IsGoodTrack(trk, prVertex);
+		if (!abs(Goodtrack)) continue;
+		
+		TVector3 trackMom = trk->pMom();
+		Double_t pPt = trackMom.Perp();
+		Double_t phi = trackMom.Phi();
+		
+		//Q-vectors calculating
+		Q_1 += 1.*pPt*cos(2*phi);
+		Q_2 += 1.*pPt*sin(2*phi);
+	}
+	
+	fQ_1 = Q_1;
+	fQ_2 = Q_2;
+	
+	//Recentering
+	Double_t Q_1rc = -0.5976;
+	Double_t Q_2rc = 1.842;
+	
+	Double_t Q_1corr = Q_1 - Q_1rc;
+	Double_t Q_2corr = Q_2 - Q_2rc;
+	
+	fQ_1_rec = Q_1corr;
+	fQ_2_rec = Q_2corr;
 
-    //Primary vertex
-    TVector3 prVertex = picoDst->event()->primaryVertex();
-    //Q-vectors
-    Double_t Q_1 = 0;
-    Double_t Q_2 = 0;
-    
- 
-    
-
-    for (UInt_t iTrack = 0; iTrack < picoDst->numberOfTracks(); iTrack++){
-      
-        StPicoTrack *trk = static_cast<StPicoTrack *>(picoDst->track(iTrack));
-        if (!trk) continue;
-        
-        Double_t Goodtrack = EP_IsGoodTrack(trk,prVertex);
-        if (!abs(Goodtrack)) continue;
-        
-        TVector3 trackMom = trk->pMom();
-        
-        Double_t pPt = trackMom.Perp();
-        Double_t phi = trackMom.Phi();
-        
-        //Q-vectors calculating
-        Q_1 += 1.*pPt*cos(2*phi);
-        Q_2 += 1.*pPt*sin(2*phi);
-    }
-    
-   // cout << "Q_1: " << Q_1 << " Q_2: " << Q_2 << endl;
-    
-    fQ_1 = Q_1;
-    fQ_2 = Q_2;
-    
-    //Recentering
-    //-------------------
-    //You have to run the code for "all" events to get the mean value of Q vector
-        //7.2.2025
-    Double_t Q_1rc = -0.5976;
-    Double_t Q_2rc = 1.842;
-    
-    Double_t Q_1corr = Q_1 - Q_1rc;
-    Double_t Q_2corr = Q_2 - Q_2rc;
-    
-    fQ_1_rec = Q_1corr;
-    fQ_2_rec = Q_2corr;
-    //-------------------
-    //7.2.2025
-
-    Double_t Psi_2 = 1./2 * TMath::ATan2(Q_2corr, Q_1corr);
+	Double_t Psi_2 = 1./2 * TMath::ATan2(Q_2corr, Q_1corr);
    
-    //-------------------
-    //Psi shift	
-    //You have to run the code for "all" events to get the mean value of Q vector (again)
-    std::vector<Double_t> A_2 = {-0.0471131, -0.0114311, -0.000157011, 0.00128572, -0.000253291, 0.000446538, 0.00223142, 0.000574021, 0.00133264, 0.00157648, 0.00169576, -0.00023281, 0.00174849, 0.00194597, 0.000343813, 0.00104523, 0.00194369, -0.000649944, 0.00073013, -0.00138147, -0.000686723};
-    std::vector<Double_t> B_2 = {0.0204715, -0.0151115, -0.00306008, -0.000966112, 0.000103265, -0.0014271, -0.00244014, 0.000801171, -0.00235772, 0.00173085, -8.08274e-05, -0.000880916, 0.000967381, 0.00182509, 0.00167076, -6.81227e-05, 8.50044e-05, -0.000525437, -0.000912995, 0.000685826, -0.000467597};
+	//Psi shift
+	std::vector<Double_t> A_2 = {-0.0471131, -0.0114311, -0.000157011, 0.00128572, -0.000253291, 0.000446538, 0.00223142, 0.000574021, 0.00133264, 0.00157648, 0.00169576, -0.00023281, 0.00174849, 0.00194597, 0.000343813, 0.00104523, 0.00194369, -0.000649944, 0.00073013, -0.00138147, -0.000686723};
+	std::vector<Double_t> B_2 = {0.0204715, -0.0151115, -0.00306008, -0.000966112, 0.000103265, -0.0014271, -0.00244014, 0.000801171, -0.00235772, 0.00173085, -8.08274e-05, -0.000880916, 0.000967381, 0.00182509, 0.00167076, -6.81227e-05, 8.50044e-05, -0.000525437, -0.000912995, 0.000685826, -0.000467597};
 
-    Double_t CorrectedPsi2 = Psi_2;
-    for (Int_t i = 1; i <= 21; i++){
-         CorrectedPsi2 +=(1.0 / 2) * (2.0 / i) *(-A_2[i - 1] * cos(2 * i * Psi_2) + B_2[i - 1] * sin(2 * i * Psi_2));
-    }
-    
-    if (Psi_2!=Psi_2 || CorrectedPsi2!=CorrectedPsi2) return;
-    
-    fPsi_2 = Psi_2;
-    
-    //Force the range (-pi/2,pi/2)
-    CorrectedPsi2 = TMath::ATan2(TMath::Sin(2 * CorrectedPsi2), TMath::Cos(2 * CorrectedPsi2)) / 2.;
-    Psi_2 = TMath::ATan2(TMath::Sin(2 * Psi_2), TMath::Cos(2 * Psi_2)) / 2.;
+	Double_t CorrectedPsi2 = Psi_2;
+	for (Int_t i = 1; i <= 21; i++){
+		CorrectedPsi2 += (1.0 / 2) * (2.0 / i) * (-A_2[i - 1] * cos(2 * i * Psi_2) + B_2[i - 1] * sin(2 * i * Psi_2));
+	}
+	
+	if (Psi_2 != Psi_2 || CorrectedPsi2 != CorrectedPsi2) return;
+	
+	fPsi_2 = Psi_2;
+	
+	//Force the range (-pi/2, pi/2)
+	CorrectedPsi2 = TMath::ATan2(TMath::Sin(2 * CorrectedPsi2), TMath::Cos(2 * CorrectedPsi2)) / 2.;
+	Psi_2 = TMath::ATan2(TMath::Sin(2 * Psi_2), TMath::Cos(2 * Psi_2)) / 2.;
 
-    
-    //-------------------
-    psi2 = CorrectedPsi2;
-   
-
-
-
-return;
+	psi2 = CorrectedPsi2;
 }
-//////
-std::vector<fastjet::PseudoJet> StPicoD0JetAnaMaker::JetReconstructionShape(vector<fastjet::PseudoJet> fInputVectors, Int_t fCentrality, Double_t fR, Bool_t fBackSub, Double_t fEP_psi2, Int_t difiter){
-
-	    //Scaling    //v2 settings
-    double v2 = 0.0;
-//https://journals.aps.org/prc/pdf/10.1103/PhysRevC.77.054901
-//https://www.hepdata.net/record/ins777954
-    switch (fCentrality) {
-
-    case 0: v2 = 0.0696; break; //70-80%
-    case 1: v2 = 0.0723; break; //60-70%
-    case 2: v2 = 0.0744; break; //50-60%
-    case 3: v2 = 0.074;  break; //40-50%
-    case 4: v2 = 0.0703; break; //30-40%
-    case 5: v2 = 0.0618; break; //20-30%
-    case 6: v2 = 0.0476; break; //10-20%
-    case 7: v2 = 0.0339; break; //5-10%
-    case 8: v2 = 0.0232; break; //0-5%
- 
-    default: v2 = 0.0; break;
-}
-    
-    double v3 = 0;
-    double v4 = 0;
-    double psi = fEP_psi2;
-
-    //BackgroundRescalingYPhiUsingVectorForY(double v2, double v3, double v4, double psi, std::vector<double> values, std::vector<double> rap_binning);
-    //BackgroundRescalingYPhi(): _v2(0), _v3(0), _v4(0), _psi(0), _a1(1), _sigma1(1000), _a2(0), _sigma2(1000), _use_rap(false), _use_phi(false) {}
-    fastjet::contrib::BackgroundRescalingYPhi rescaling(v2,v3,v4,psi,0.,1.,0.,1.);
-    rescaling.use_rap_term(false);    // this is useful to check if the vectors with rapidity dependence have good sizes, if one wants to use also the rapidity rescaling.
-    rescaling.use_phi_term(true);
-    
-	
-
-	//-----------------------------------------------------------
-	
-	// Define jet algorithm for actual jet reconstruction (Anti-kt with radius fR)
-	fastjet::JetDefinition jet_def(fastjet::antikt_algorithm, fR, fastjet::E_scheme, fastjet::Best);
-//std::cout << jet_def.description() << std::endl;
-	// Define area for jet reconstruction
-	
-
-	
-	fastjet::AreaDefinition area_def_jet(fastjet::active_area_explicit_ghosts, fastjet::GhostedAreaSpec(1.2, 1, 0.005));
-	
-	//For tuning, fix the seed for fastjet
-	if (fSetJetFixedSeed) {
-	
-        Int_t seed1 = fJetFJSeed;
-	Int_t seed2 = fJetFJSeed;
-	std::vector<Int_t> seeds = { static_cast<Int_t>(seed1), static_cast<Int_t>(seed2) };
-	
-	area_def_jet = area_def_jet.with_fixed_seed(seeds);
-	
-	}
-	
-   //cout << "Clustering with " << jet_def.description() << endl;
-  // cout << "Area defn with " << area_def_jet.description() << endl;
-
-	// Perform jet clustering with the background-subtracted (or original) particles
-	fClustSeq = new fastjet::ClusterSequenceArea(fInputVectors, jet_def, area_def_jet);
-	
-	// Sort the jets by transverse momentum (pt)
-	double ptmin = 0.;
-	vector<fastjet::PseudoJet> fInclusiveJets;
-	fInclusiveJets.clear();
-	fInclusiveJets = sorted_by_pt(fClustSeq->inclusive_jets(ptmin));
-
-	//----------------------------------------------------------
-	//--- Background Estimation ---
-	
-	////std::vector<Int_t> seeds2 = { static_cast<Int_t>(12345), static_cast<Int_t>(56789) };
-	
-	fastjet::JetDefinition jet_def_bkgd(fastjet::kt_algorithm, fR, fastjet::E_scheme, fastjet::Best); // Define jet algorithm for background estimation
-	fastjet::AreaDefinition area_def_bkgd(fastjet::active_area_explicit_ghosts, fastjet::GhostedAreaSpec(1.2, 1, 0.005)); // Define the area for background estimation
-	
-
-	//For tuning, fix the seed for fastjet
-	if (fSetJetFixedSeed) {
-
-        Int_t seed1 = fJetFJSeed;
-	Int_t seed2 = fJetFJSeed;
-	std::vector<Int_t> seeds = { static_cast<Int_t>(seed1), static_cast<Int_t>(seed2) };
-	
-	area_def_bkgd = area_def_bkgd.with_fixed_seed(seeds);
-	
-	}
-	
-	////fastjet::AreaDefinition area_def_bkgd = area_def_bkgd2.with_fixed_seed(seeds2);
-	// Decide how many jets to remove based on centrality
-	int nJetsRemove = fJetNHardestSkipped_1080;
-	if (fCentrality == 7 || fCentrality == 8) nJetsRemove = fJetNHardestSkipped_010;
-
-	// Selector to choose the hardest jets based on centrality and eta
-	fastjet::Selector selector = (!fastjet::SelectorNHardest(nJetsRemove)) * fastjet::SelectorAbsEtaMax(0.6);// * fastjet::SelectorPtMin(0.01);
-
-	// Create background estimator using the previously defined selector and jet algorithm
-	fastjet::JetMedianBackgroundEstimator bkgd_estimator(selector, jet_def_bkgd, area_def_bkgd);
-	
-	//Estimation of the background using only charged tracks
-	if (fPhiModulation) bkgd_estimator.set_rescaling_class(&rescaling);
-	bkgd_estimator.set_particles(fInputVectors);
-	
-	if (fBackSub){
-	   	backgroundDensity = bkgd_estimator.rho();
-	   	backgroundDensityM = bkgd_estimator.rho_m(); 
-	}
-	//--------------------------------------------------------------
-	
-	fastjet::contrib::GenericSubtractor gensub(&bkgd_estimator);
-	gensub.set_common_bge_for_rho_and_rhom(true);
-	fastjet::contrib::GenericSubtractorInfo info;
-
-	Angularity my_angularity_10half(1,0.5,fR);
-	Angularity my_angularity_11(1,1,fR);
-	Angularity my_angularity_11half(1,1.5,fR);
-	Angularity my_angularity_12(1,2,fR);
-	Angularity my_angularity_13(1,3,fR);
-	Angularity my_angularity_Disp(2,0,fR);
-	
-	fastjet::FunctionOfPseudoJet<double>* shape10half = &my_angularity_10half;
-	fastjet::FunctionOfPseudoJet<double>* shape11 = &my_angularity_11;
-	fastjet::FunctionOfPseudoJet<double>* shape11half = &my_angularity_11half;
-	fastjet::FunctionOfPseudoJet<double>* shape12 = &my_angularity_12;
-	fastjet::FunctionOfPseudoJet<double>* shape13 = &my_angularity_13;
-	fastjet::FunctionOfPseudoJet<double>* shapeDisp = &my_angularity_Disp;
-	
-	for (unsigned int i = 0; i < fInclusiveJets.size(); i++) {
-	    const fastjet::PseudoJet &jet = fInclusiveJets[i];
-
-	    // Nejprve zkontrolujeme constituenty jetu, zda obsahuje D⁰ meson
-	    std::vector<fastjet::PseudoJet> constituents = jet.constituents();
-	    int d0_count = 0;
-	    
-	    for (size_t j = 0; j < constituents.size(); j++) {
-	    
-		    int flag = constituents[j].user_index();
-			if (std::abs(flag) == 2) {
-			    d0_count++;
-			}
-	    	
-	    }
-
-	    // Pokud je v jetu právě jeden D⁰ meson, provedeme odečet angularity
-	    if (d0_count == 1) {
-		fAngul10half = gensub(*shape10half, jet, info);
-		fAngul11 = gensub(*shape11, jet, info);
-		fAngul11half = gensub(*shape11half, jet, info);
-		fAngul12 = gensub(*shape12, jet, info);
-		fAngul13 = gensub(*shape13, jet, info);
-		fAngulDisp = sqrt(gensub(*shapeDisp, jet, info));
-	    } 
-	    
-	}
-
-	return fInclusiveJets;
-	
-	
-}
-
-//////
-std::vector<fastjet::PseudoJet> StPicoD0JetAnaMaker::JetReconstructionICS(vector<fastjet::PseudoJet> fInputVectors, Int_t fCentrality, Double_t fR, Bool_t fBackSub, Double_t fEP_psi2, Int_t difiter){
-
-
-Int_t NiterA[4] = {4,3,2,2};
-Double_t R_max1A[4] = {0.05,0.125,0.100,0.150};
-Double_t R_max2A[4] = {0.005,0.005,0.175,0.100};
-Bool_t fMassiveTest = true;
-/*****/
-   //Scaling    //v2 settings
-    Double_t v2 = 0.0;
-//https://journals.aps.org/prc/pdf/10.1103/PhysRevC.77.054901
-//https://www.hepdata.net/record/ins777954
-    switch (fCentrality) {
-
-    case 0: v2 = 0.0696; break; //70-80%
-    case 1: v2 = 0.0723; break; //60-70%
-    case 2: v2 = 0.0744; break; //50-60%
-    case 3: v2 = 0.074;  break; //40-50%
-    case 4: v2 = 0.0703; break; //30-40%
-    case 5: v2 = 0.0618; break; //20-30%
-    case 6: v2 = 0.0476; break; //10-20%
-    case 7: v2 = 0.0339; break; //5-10%
-    case 8: v2 = 0.0232; break; //0-5%
- 
-    default: v2 = 0.0; break;
-}
-    
-    Double_t v3 = 0;
-    Double_t v4 = 0;
-    Double_t psi = fEP_psi2;
-
-    //BackgroundRescalingYPhiUsingVectorForY(Double_t v2, Double_t v3, Double_t v4, Double_t psi, std::vector<Double_t> values, std::vector<Double_t> rap_binning);
-    //BackgroundRescalingYPhi(): _v2(0), _v3(0), _v4(0), _psi(0), _a1(1), _sigma1(1000), _a2(0), _sigma2(1000), _use_rap(false), _use_phi(false) {}
-    fastjet::contrib::BackgroundRescalingYPhi rescaling(v2,v3,v4,psi,0.,1.,0.,1.);
-    rescaling.use_rap_term(false);    // this is useful to check if the vectors with rapidity dependence have good sizes, if one wants to use also the rapidity rescaling.
-    rescaling.use_phi_term(true);
-    
-	//--- Background Estimation ---
-	fastjet::JetDefinition jet_def_bkgd(fastjet::kt_algorithm, fR, fastjet::E_scheme, fastjet::Best); // Define jet algorithm for background estimation
-	fastjet::AreaDefinition area_def_bkgd(fastjet::active_area_explicit_ghosts, fastjet::GhostedAreaSpec(1.2, 1, 0.005)); // Define the area for background estimation
-	
-	//For tuning, fix the seed for fastjet
-	if (fSetJetFixedSeed) {
-	
-        Int_t seed1 = fJetFJSeed;
-	Int_t seed2 = fJetFJSeed;
-	std::vector<Int_t> seeds = { static_cast<Int_t>(seed1), static_cast<Int_t>(seed2) };
-	
-	area_def_bkgd = area_def_bkgd.with_fixed_seed(seeds);
-	
-	}
-
-	// Decide how many jets to remove based on centrality
-	int nJetsRemove = fJetNHardestSkipped_1080;
-	if (fCentrality == 7 || fCentrality == 8) nJetsRemove = fJetNHardestSkipped_010;
-
-	// Selector to choose the hardest jets based on centrality and eta
-	fastjet::Selector selector = (!fastjet::SelectorNHardest(nJetsRemove)) * fastjet::SelectorAbsEtaMax(0.6);// * fastjet::SelectorPtMin(0.01);
-
-	// Create background estimator using the previously defined selector and jet algorithm
-	fastjet::JetMedianBackgroundEstimator bkgd_estimator(selector, jet_def_bkgd, area_def_bkgd);
-
-	// Set the maximum eta value for background estimation
-	Double_t max_eta = 1;
-        
-	//--- Jet Reconstruction ---
-	fastjet::contrib::IterativeConstituentSubtractor subtractor; // Set up the background subtraction algorithm
-	subtractor.set_distance_type(fastjet::contrib::ConstituentSubtractor::deltaR); // Set distance type for subtraction
-
-  	// Set parameters for the background subtraction (maximum distance and alpha values)
-	vector<Double_t> max_distances;
-	vector<Double_t> alphas;
-	
-	//For higher iterations always used the same R_1max and alpha
-	if (difiter < 0 || difiter >= 4) {
-	    std::cerr << "ERROR: difiter out of range! difiter = " << difiter << std::endl;
-	    exit(1);
-	}
-	if(NiterA[difiter] > 2){
-	
-		for (Int_t it = 0; it < NiterA[difiter] ; it++){
-			max_distances.push_back(R_max1A[difiter]);
-			alphas.push_back(0);
-		}
-	} else //else two iterations
-	{
-		max_distances.push_back(R_max1A[difiter]);
-		max_distances.push_back(R_max2A[difiter]);
-		alphas.push_back(0);
-		alphas.push_back(0);
-	}
-	
-
-	
-	if (fBackSub&&false){
-		cout << NiterA[difiter] << "test" << endl;
-		for (auto& a : alphas) {
-			cout << "alpha: " << a << endl;
-		}
-		for (auto& rr : max_distances) {	
-			cout << "max_distances: " << rr << endl;
-		}
-	}
-	
-	//exclude D0
-	fastjet::Selector notD02 = fastjet::SelectorMassMax(1); // 1 GeV max mass
-	std::vector<fastjet::PseudoJet> particles_without_D0;
-	std::vector<fastjet::PseudoJet> D0_pseudojet;
-	std::vector<fastjet::PseudoJet> all_vectors;
-
-	for (auto& p : fInputVectors) {
-	
-	if (std::isnan(p.E()) || std::isnan(p.px()) || std::isnan(p.py()) || std::isnan(p.pz())) {
-	    std::cerr << "Found invalid input PseudoJet: px=" << p.px() << " E=" << p.E() << std::endl;
-	}
-
-	
-	    if (notD02(p) || abs(p.user_index())!=2) {
-	    	fastjet::PseudoJet temp_jet; 
-
-	    	if (fMassiveTest) temp_jet = fastjet::PseudoJet(p.px(), p.py(), p.pz(), p.E());
-	    	else temp_jet = fastjet::PseudoJet(p.px(), p.py(), p.pz(), sqrt(p.px()*p.px()+p.py()*p.py()+p.pz()*p.pz()));
-	    	
-		temp_jet.set_user_index(p.user_index());
-	    	particles_without_D0.push_back(temp_jet);
-		all_vectors.push_back(temp_jet);
-	    } else {
-		    fastjet::PseudoJet temp_jet; 
-		    
-		    if (fMassiveTest) temp_jet = fastjet::PseudoJet(p.px(), p.py(), p.pz(), p.E()); //HERE
-		    else temp_jet = fastjet::PseudoJet(p.px(), p.py(), p.pz(), sqrt(p.px()*p.px()+p.py()*p.py()+p.pz()*p.pz()));
-		    
-		    temp_jet.set_user_index(p.user_index());
-		    all_vectors.push_back(temp_jet);
-		    D0_pseudojet.push_back(temp_jet);
-	    }
-	}
-	///////////////////////////////////
-	
-	// Apply the subtraction parameters
-	subtractor.set_parameters(max_distances, alphas);
-	subtractor.set_ghost_removal(true); // Enable ghost removal
-	subtractor.set_ghost_area(0.005); // Set ghost area value
-	subtractor.set_max_eta(max_eta); // Set maximum eta for particles
-	
-	
-	subtractor.set_background_estimator(&bkgd_estimator); // Link the background estimator
-	
-	if(fMassiveTest) subtractor.set_common_bge_for_rho_and_rhom(true); // Set common background estimation for rho and rhom
-	if(fMassiveTest) subtractor.set_keep_original_masses(); // Keep the original masses of particles
-	subtractor.set_scale_fourmomentum();
-        
-       	// Selector for particles with mass below 1 GeV (likely excludes certain particles)
-	fastjet::Selector notD0 = fastjet::SelectorMassMax(1); // 1 GeV max mass
-	subtractor.set_particle_selector(&notD0);  
-
-	subtractor.initialize(); // Initialize the background subtraction algorithm
-
-	// Define jet algorithm for actual jet reconstruction (Anti-kt with radius fR)
-	fastjet::JetDefinition jet_def(fastjet::antikt_algorithm, fR, fastjet::E_scheme, fastjet::Best);
-
-	// Define area for jet reconstruction
-	fastjet::AreaDefinition area_def_jet(fastjet::active_area, fastjet::GhostedAreaSpec(1.2, 1, 0.005));
-	////fastjet::AreaDefinition area_def_jet = area_def_jet2.with_fixed_seed(seeds);
-	
-	//For tuning, fix the seed for fastjet
-	if (fSetJetFixedSeed) {
-	
-        Int_t seed1 = fJetFJSeed;
-	Int_t seed2 = fJetFJSeed;
-	std::vector<Int_t> seeds = { static_cast<Int_t>(seed1), static_cast<Int_t>(seed2) };
-	
-	area_def_jet = area_def_jet.with_fixed_seed(seeds);
-	
-	}
-
-	// Set particles for background estimator (background estimation for the input particles)
-	////bkgd_estimator.set_particles(fInputVectors); //all_vectors
-	//Rescaling
-	if (fPhiModulation) bkgd_estimator.set_rescaling_class(&rescaling);
-	bkgd_estimator.set_particles(all_vectors);
-	
-	// Minimum pt for jets (below this, jets are excluded)
-	Double_t ptmin = 0.;
-	vector<fastjet::PseudoJet> corrected_event;
-
-	// Apply background subtraction if enabled
-	if (fBackSub) corrected_event = subtractor.subtract_event(particles_without_D0); 
-	else corrected_event = particles_without_D0; // Otherwise, use original input vectors
-	
-	if (fBackSub){
-	/*
-		    // Odstranit částice s |eta| > 1 z vektoru corrected_event
-		    corrected_event.erase(
-			std::remove_if(corrected_event.begin(), corrected_event.end(),
-				       [](const fastjet::PseudoJet& p) {
-				           return (fabs(p.eta()) > 1.0 || p.perp() < 0.2);
-				         //  return (fabs(p.eta()) > 1.0);
-				       }),
-			corrected_event.end()
-		    );
-		    
-		    */
-	
-        for (vector<fastjet::PseudoJet>::const_iterator particle = corrected_event.begin(); particle != corrected_event.end(); ++particle) {
-		 hJetConstRapPhiICS->Fill(particle->phi_std(), particle->rap(),weightCentrality);
-		 hJetConstEtaPhiICS->Fill(particle->phi_std(), particle->eta(),weightCentrality);		
-	}
-	
-	}
-	
-	// Return back D0
-	//corrected_event.push_back(D0_pseudojet.back());
-	if (!D0_pseudojet.empty()) corrected_event.push_back(D0_pseudojet.back());
-	else cout << "D0 missing!!!" << endl;
-
-	
-	// Perform jet clustering with the background-subtracted (or original) particles
-	if (fClustSeq) {
-	    	delete fClustSeq;
-	    	fClustSeq = nullptr;
-	}
-	fClustSeq = new fastjet::ClusterSequenceArea(corrected_event, jet_def, area_def_jet);
-	
-	// Sort the jets by transverse momentum (pt)
-	vector<fastjet::PseudoJet> fInclusiveJets;
-	fInclusiveJets.clear();
-	fInclusiveJets = sorted_by_pt(fClustSeq->inclusive_jets(ptmin));
-
-	backgroundDensity = bkgd_estimator.rho();
-
-	// Return the list of inclusive jets
-	return fInclusiveJets;
-}
-
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
 Int_t StPicoD0JetAnaMaker::Init(){
@@ -819,6 +346,8 @@ Int_t StPicoD0JetAnaMaker::Init(){
 	hJetConstRapPhiICS = new TH2D("hJetConstRapPhiICS", "Jet constituent (w/o D^{0}) y vs #phi after ICS;#phi;rapidity", 120, -TMath::Pi(), TMath::Pi(), 240, -1.2, 1.2);
 	hJetConstEtaPhi = new TH2D("hJetConstEtaPhi", "Jet constituent (w/o D^{0}) #eta vs #phi;#phi;#eta", 120, -TMath::Pi(), TMath::Pi(), 200, -5, 5);
 	hJetConstEtaPhiICS = new TH2D("hJetConstEtaPhiICS", "Jet constituent (w/o D^{0}) #eta vs #phi after ICS;#phi;#eta", 120, -TMath::Pi(), TMath::Pi(), 200, -5, 5);
+	hJetConstPt = new TH1D("hJetConstPt", "Jet constituent (w/o D^{0}); p_{T} [GeV/c];Count", 350, 0, 35);
+	hJetConstPtICS = new TH1D("hJetConstPtICS", "Jet constituent (w/o D^{0}) after ICS; p_{T} [GeV/c];Count", 350, 0, 35);
 	
 	//Neutral particles hadronic correction:
 	hJetHadrCorrNHitsFit   = new TH1D("hJetHadrCorrNHitsFit",   "Hadron. corr. track nHitsFit;nHitsFit;Count", 51, -0.5, 50.5);
@@ -831,6 +360,19 @@ Int_t StPicoD0JetAnaMaker::Init(){
         assert(mADCtoEMaker);
         mTables = mADCtoEMaker->getBemcData()->getTables();
     
+    
+    
+  fjw = new StFJWrapper("D0JetAna", "D0JetAna");
+  fjw->SetHJetConstRapPhiICS(hJetConstRapPhiICS);
+  fjw->SetHJetConstEtaPhiICS(hJetConstEtaPhiICS);
+  fjw->SetHJetConstPtICS(hJetConstPtICS);
+  fjw->SetAreaType(fastjet::active_area_explicit_ghosts);
+  fjw->SetStrategy(fastjet::Best);
+  fjw->SetGhostArea(0.005);
+  fjw->SetR(fJetRadius); //Checked
+  fjw->SetAlgorithm(fastjet::antikt_algorithm);       // fJetAlgo); //Checked
+  fjw->SetRecombScheme(fastjet::E_scheme); // fRecombScheme);
+  fjw->SetMaxRap(10.);                // tracks    
         return kStOK;
 }
 
@@ -839,7 +381,7 @@ StPicoD0JetAnaMaker::~StPicoD0JetAnaMaker(){
 
 //Destructor
 delete mGRefMultCorrUtil;
-delete fClustSeq;
+delete fjw;
 }
 
 //-----------------------------------------------------------------------------
@@ -1358,8 +900,9 @@ exit(0);*/
 	fastjet::PseudoJet pj(px, py, pz, E);
 
         //Set flag to 2 if the D0 candidate is a D0 and to -2 if it is a anti-D0
+        //Actually 30008 and 30012 due to simulation
         //It cannot be -1 or 1 because the default flag in FastJet is -1.
-	pj.set_user_index(D0_fourmomentum[nD0].D0_antiD0 * 2);
+	pj.set_user_index(30010+D0_fourmomentum[nD0].D0_antiD0 * 2);
 
         //Add the D0 candidate to the inclusive particle vector
 	input_particles.push_back(pj);
@@ -1476,9 +1019,77 @@ exit(0);*/
         
 	Int_t difiter = 2;
 	vector<fastjet::PseudoJet> corrected_jets;
-	
+	/*
 	if (fJetBgSubMethod == 1) corrected_jets = JetReconstructionICS(input_particles, centrality, fJetRadius, fSetJetBgSub, psi2, difiter);
 	if (fJetBgSubMethod == 0 || fJetBgSubMethod == 2) corrected_jets = JetReconstructionShape(input_particles, centrality, fJetRadius, fSetJetBgSub, psi2, difiter);
+*/
+        ///
+	int NiterA[4] = {4,3,2,2};
+	double R_max1A[4] = {0.05,0.125,0.100,0.150};
+	double R_max2A[4] = {0.005,0.005,0.175,0.100};
+
+	int i_1 = 2;
+                fjw->Clear();
+		fjw->SetNIter(NiterA[i_1]);
+		fjw->SetCentrality(centrality);
+		fjw->SetCentralityW(weightCentrality);
+   		fjw->SetBackgroundSub(kTRUE);
+   		fjw->SetSubtractionMc(kFALSE);
+   		fjw->SetMassiveTest(kTRUE);
+   		fjw->SetEventPlane2(psi2);
+   		fjw->SetPhiModulation(fPhiModulation);
+		fjw->SetAlpha1(0);
+		fjw->SetAlpha2(0);
+		fjw->SetRMax1(R_max1A[i_1]);
+		fjw->SetRMax2(R_max2A[i_1]);
+		fjw->setJetNHardestSkipped(fJetNHardestSkipped_010, fJetNHardestSkipped_1080);	
+		fjw->setJetFixedSeed(fSetJetFixedSeed, fJetFJSeed);
+	        
+	for (const auto& jet : input_particles) {
+
+	  const double px = jet.px();
+	  const double py = jet.py();
+	  const double pz = jet.pz();
+	  const double E  = jet.E();
+
+	  const int index = jet.user_index(); 
+
+	  fjw->AddInputVector(px, py, pz, E, index);
+	}   
+	        
+        	// 0 - Area based, 1 - ICS, 2 - jet shape
+	switch (fJetBgSubMethod) {
+	    case 0:
+		fjw->Run_Shape();
+		break;
+
+	    case 1:
+		fjw->Run();
+		break;
+
+	    case 2:{
+		fjw->Run_Shape();
+		break;
+		}
+	    default:
+		std::cerr << "Warning: Unknown fBgSubtraction option " << fJetBgSubMethod << std::endl;
+		exit(1); 
+	}
+	
+	fAngul10half = fjw->GetActualShapeL10half();
+	fAngul11 = fjw->GetActualShapeL11();
+	fAngul11half = fjw->GetActualShapeL11half();
+	fAngul12 = fjw->GetActualShapeL12();
+	fAngul13 = fjw->GetActualShapeL13();
+	fAngulDisp = fjw->GetActualShapeDisp();	
+	
+	
+  //Get all jets
+  corrected_jets = fjw->GetInclusiveJets();
+  backgroundDensity = fjw->GetJetRho();
+  backgroundDensityM = fjw->GetJetRhoM();
+        
+        ////
 
 	bool emptyFlag=true;
 
@@ -1534,8 +1145,8 @@ exit(0);*/
 
                 //Loading of the particle index
                 Int_t index = particle->user_index();
-                
-                //Number of constituents (+-2 = D0, 3 = charged, 10 = neutral, -1 ghost)
+
+                //Number of constituents (30010+-2 = D0, 3 = charged, 10 = neutral, -1 ghost)
                 if (index == -1) continue;
                 //if (particle->pt() < 0.01); continue;
                 
@@ -1562,7 +1173,7 @@ exit(0);*/
                 }
 
                 //Check if the constituent is D0 (D0 = 2, antiD0 = -2)
-                if (abs(index) == 2 ) {
+                if (abs(index-30010) == 2 ) {
 		    
                     //user_index is used as a flag to check if the jet contains D0
                     user_index = index;
@@ -1574,8 +1185,6 @@ exit(0);*/
                     zet = (D0_fourmomentum[nD0].px*px_jet_corr+D0_fourmomentum[nD0].py*py_jet_corr)/(pT_jet_corr*pT_jet_corr);
                     
                     emptyFlag = false;
-                    
-                    //cout << "area je: " << corrected_jets[i].area() << " " << corrected_jets[i].area_4vector().perp() << endl;
                     
                 }
 
@@ -1590,7 +1199,7 @@ exit(0);*/
             //if (area_jet < fAcuts) continue; //Not implemented
 
             //If the jet contains D0
-            if (abs(user_index) ==2){
+            if (abs(user_index-30010) ==2){
 
                 //Calculation of the D0 mass
                 Double_t D0mass = D0_fourmomentum[nD0].D0Mass;
@@ -1603,7 +1212,7 @@ exit(0);*/
                 Double_t D0_pseudorapidity = v.PseudoRapidity();
                 
 		// D0 meson
-		d0PdgSign     = Int_t(user_index/2.);  //1 pro D0, -1 pro anti-D0
+		d0PdgSign     = Int_t((user_index-30010)/2.);  //1 pro D0, -1 pro anti-D0
 		d0Mass        = D0mass;
 		d0Pt          = D0_pT;
 		d0Rapidity    = D0_rapidity;
@@ -1616,14 +1225,14 @@ exit(0);*/
 		jetRapidity       = corrected_jets[i].rap();
 		jetArea           = corrected_jets[i].area_4vector().perp();
 		jetPt             = pT_jet_corr;
-		if (fJetBgSubMethod == 0 || fJetBgSubMethod ==1){ //Area+ICS
+		if (fJetBgSubMethod ==1){ //ICS
 			lambda1_0_5       = lambda_1_0half;
 			lambda1_1         = lambda_1_1;
 			lambda1_1_5       = lambda_1_1half;
 			lambda1_2         = lambda_1_2;
 			lambda1_3         = lambda_1_3;
 			momDisp           = sqrt(lambda_2_0);
-		} else if (fJetBgSubMethod ==2){
+		} else if (fJetBgSubMethod==0||fJetBgSubMethod ==2){//Area + shape
 			lambda1_0_5       = fAngul10half;
 			lambda1_1         = fAngul11;
 			lambda1_1_5       = fAngul11half;
@@ -1674,32 +1283,6 @@ exit(0);*/
 //---------------------------------------------------------------------
 //-----------------------------FUNCTIONS-------------------------------
 //---------------------------------------------------------------------
- //Not used anymore
-Double_t StPicoD0JetAnaMaker::vertexCorrectedEta(Double_t eta, Double_t vz) {
-    //Function to correct the eta value of a track for the z-position of the primary vertex
-
-    //eta = -log(tan(theta/2)) => theta = 2*atan(exp(-eta))
-    Double_t tower_theta = 2.0 * atan(exp(-eta));
-
-    //If eta = 0 then z = 0
-    //Else calculate z position
-    Double_t z = 0.0;
-    if (eta != 0.0) z = mBarrelRadius / tan(tower_theta);
-
-    //Difference between the z position of the track and the z position of the primary vertex
-    Double_t z_diff = z - vz;
-
-    //Calculate the corrected theta value
-    Double_t theta_corr = atan2(mBarrelRadius, z_diff);
-
-    //Calculate the corrected eta value
-    Double_t eta_corr = -log(tan(theta_corr / 2.0));
-
-    return eta_corr;
-
-    //Function returns the corrected eta value
-}
-//---------------------------------------------------------------------------
 Bool_t StPicoD0JetAnaMaker::GetCaloTrackMomentum(StPicoDst *mPicoDst, TVector3 mPrimVtx, Int_t pionDaugId, Int_t kaonDaugId) {
   //Function to calculate the momentum of the track matched to the calorimeter tower
 
@@ -1939,20 +1522,6 @@ Bool_t StPicoD0JetAnaMaker::isMBTrigger(Int_t mYear){
     
   return matchMB;
   //Function returns true if the event is triggered by the MB trigger
-
-/*
- //Initialization of the set of triggers
- const std::set<Int_t>* mbTriggers = nullptr;
-
- //Different triggers for different years, saved in StCuts.cxx
- if(mYear ==2016) mbTriggers = &mycuts::mbTriggers2016;
- if(mYear ==2014) mbTriggers = &mycuts::mbTriggers2014;
-
- //Loading event and checking if it is triggered by the MB trigger
- StPicoEvent* event = static_cast<StPicoEvent*>(mPicoDstMaker->picoDst()->event());
- return std::any_of(mbTriggers->begin(), mbTriggers->end(), [&](Int_t trigger) { return event->isTrigger(trigger); });
-*/
- //Function returns true if the event is triggered by the MB trigger
 }
 //-----------------------------------------------------------------------------
 Bool_t StPicoD0JetAnaMaker::isGoodTrack(StPicoTrack const * const trk) const{
@@ -1971,9 +1540,6 @@ Bool_t StPicoD0JetAnaMaker::isGoodTrack(StPicoTrack const * const trk) const{
 
     //In StCuts.cxx is defined if the HFT is required and the nHitsFit and minPt values.
     return (trk->gPt() > fDaughterTrackMinPT && trk->nHitsFit() >= fDaughterTrackNHitsFit && (HFTCondition || !fDaughterTrackHftRequired) && EtaCondition);
-
-
-
     //Function returns true if track is good
 }
 //-----------------------------------------------------------------------------

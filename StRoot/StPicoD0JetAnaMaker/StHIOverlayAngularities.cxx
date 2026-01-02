@@ -403,6 +403,8 @@ Int_t StHIOverlayAngularities::Init()
   fjw->SetHJetConstRapPhiICS(hJetConstRapPhiICS);
   fjw->SetHJetConstEtaPhiICS(hJetConstEtaPhiICS);
   fjw->SetHJetConstPtICS(hJetConstPtICS);
+  fjw->SetBackgroundSub(kTRUE);
+  fjw->SetSubtractionMc(kTRUE);
   fjw->SetAreaType(fastjet::active_area_explicit_ghosts);
   fjw->SetStrategy(strategy);
   fjw->SetGhostArea(fGhostArea);
@@ -1412,6 +1414,7 @@ Int_t StHIOverlayAngularities::Make()
       fjw->SetCentrality(fCentrality);
       fjw->SetCentralityW(fCentralityWeight);
       fjw->SetBackgroundSub(kFALSE);
+      fjw->SetSubtractionMc(kTRUE);
       fjw->SetMassiveTest(fMassiveAll);
       fjw->SetAlpha1(fgAlpha1);
       fjw->SetAlpha2(fgAlpha2);
@@ -1488,6 +1491,7 @@ Int_t StHIOverlayAngularities::Make()
       //=========================================================================================//
       fjw->Clear();
       fjw->SetBackgroundSub(kFALSE);
+      fjw->SetSubtractionMc(kTRUE);
       fjw->SetMassiveTest(fMassiveAll);
       fjw->SetCentrality(fCentrality);
       fjw->SetCentralityW(fCentralityWeight);
@@ -1609,6 +1613,7 @@ Int_t StHIOverlayAngularities::Make()
     fjw->SetCentrality(fCentrality);
     fjw->SetCentralityW(fCentralityWeight);
     fjw->SetBackgroundSub(kTRUE);
+    fjw->SetSubtractionMc(kTRUE);
     fjw->SetMassiveTest(fMassiveAll);
     fjw->SetAlpha1(fgAlpha1);
     fjw->SetAlpha2(fgAlpha2);
@@ -1958,6 +1963,7 @@ int i_1 = 2;
 		fjw->SetCentrality(fCentrality);
 		fjw->SetCentralityW(fCentralityWeight);
    		fjw->SetBackgroundSub(kTRUE);
+   	        fjw->SetSubtractionMc(kTRUE);
    		fjw->SetMassiveTest(fMassiveAll);
    		fjw->SetEventPlane2(fPsi_2_shifted);
    		fjw->SetPhiModulation(fPhiBgModulation);

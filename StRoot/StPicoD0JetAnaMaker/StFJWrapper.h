@@ -111,6 +111,7 @@ class StFJWrapper
   void SetEventPlane2(Double_t EP_psi2) {fEP_psi2 = EP_psi2;}
   //fBackSub
   void SetBackgroundSub(Bool_t BackSub)  { fBackSub = BackSub; }
+  void SetSubtractionMc(Bool_t SubtractMc)  { fSubtractMc = SubtractMc; }
   Bool_t GetBackgroundSub() const { return fBackSub; }
   Double_t GetActualShapeL10half() const { return fAngul10half; }
   Double_t GetActualShapeL11() const { return fAngul11; }
@@ -212,6 +213,7 @@ class StFJWrapper
   Double_t                               fMedUsedForBgSub;    //!
   Bool_t                                 fUseArea4Vector;     //!
   Bool_t				 fBackSub;
+  Bool_t				 fSubtractMc;
   Bool_t 				 fPhiModulation;
   Int_t  		    		 fJetNHardestSkipped_010;
   Int_t    				 fJetNHardestSkipped_1080;
@@ -305,6 +307,7 @@ StFJWrapper::StFJWrapper(const char *name, const char *title)
   , fZcut(0.1)
   , fBeta(0)
   , fBackSub	       (kTRUE)
+  , fSubtractMc        (kTRUE)
   , fPhiModulation     (kFALSE)
   , fJetNHardestSkipped_010 (2)
   , fJetNHardestSkipped_1080 (1)
@@ -716,8 +719,8 @@ Int_t difiter = 2;
 	  const int uid = pj.user_index();
 
 	  // vyhoď MC reco tracky i MC reco towery
-	  if (uid >= 10000)  continue;
-	  if (uid <= -10000) continue;
+	  if (fSubtractMc && uid >= 10000)  continue;
+	  if (fSubtractMc && uid <= -10000) continue;
 
 	  inputRealOnly.push_back(pj);
 	}
@@ -883,8 +886,8 @@ Int_t difiter = 2;
 	  const int uid = pj.user_index();
 
 	  // exclude MC reco tracks, MC D0, and MC reco towers
-	  if (uid >= 10000)  continue;
-	  if (uid <= -10000) continue;
+	  if (fSubtractMc &&uid >= 10000)  continue;
+	  if (fSubtractMc &&uid <= -10000) continue;
 
 	  inputRealOnly.push_back(pj);
 	}
@@ -1059,12 +1062,12 @@ Int_t StFJWrapper::Run_Shape()
           
     	std::vector<fastjet::PseudoJet> inputRealOnly;
 	inputRealOnly.reserve(fInputVectors.size());
-
+	
 	for (const auto &pj : fInputVectors) {
 		  const int uid = pj.user_index();
 
-		  if (uid >= 10000)  continue;
-		  if (uid <= -10000) continue;
+		  if (fSubtractMc &&uid >= 10000)  continue;
+		  if (fSubtractMc &&uid <= -10000) continue;
 
 		  inputRealOnly.push_back(pj);
 	}
