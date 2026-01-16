@@ -21,6 +21,8 @@
 #include <fastjet/tools/JetMedianBackgroundEstimator.hh>
 #include <fastjet/tools/BackgroundEstimatorBase.hh>
 #include <fastjet/tools/Subtractor.hh>
+//#include <fastjet/tools/BackgroundRescaling.hh>
+
 //from contrib package
 #include <fastjet/contrib/GenericSubtractor.hh>
 #include <fastjet/contrib/ShapeWithComponents.hh>

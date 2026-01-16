@@ -173,15 +173,22 @@ void runD0JetAna(string pico="testPico.list",
    picoD0JetAnaMaker->setJetMaxNeutralPtFrac(false, 0.95); // false = not used; abs(eta) <= //Postponed to later analysis
    
    //Fastjet
-   picoD0JetAnaMaker->setJetFixedSeed(true, 12345); // false = random seed, true = second parameter is the seed
+   picoD0JetAnaMaker->setJetFixedSeed(false, 12345); // false = random seed, true = second parameter is the seed
+   
+   //ICS
+   std::vector<Double_t> maxDeltaRs;
+   maxDeltaRs.push_back(0.100);
+   maxDeltaRs.push_back(0.175);
+
+   std::vector<Double_t> alphas;
+   alphas.push_back(0.0);
+   alphas.push_back(0.0);
+   picoD0JetAnaMaker->setICSSubtractionParams(maxDeltaRs, alphas);
    
    //Background calculation
-   picoD0JetAnaMaker->setJetBgSubtraction(true, 2); // true = bg subtraction; method: 0 - Area based, 1 - ICS, 2 - jet shape
-   picoD0JetAnaMaker->setJetNHardestSkipped(2, 1); // First: 0-10%; Second: 10-80%
+   picoD0JetAnaMaker->setJetBgSubtraction(true, 12); // true = bg subtraction; method: //1 - Area based method + jet shape method // 2 - ICS // 12 or 21 - both
+   picoD0JetAnaMaker->setJetNHardestSkipped(2, 2); // First: 0-10%; Second: 10-80% //CHANGE
    picoD0JetAnaMaker->setJetBgPhiModulation(false);
-
-   //???
-   picoD0JetAnaMaker->setGhostMaxrap(1.0);
 
 
    chain->Init();

@@ -35,17 +35,15 @@
 
 // jet-framework includes
 #include "StFJWrapper.h"
-//#include "StEmcPosition.h"
 #include "StRoot/StEmcUtil/projection/StEmcPosition.h"
 #include "phys_constants.h"
 
 // centrality includes
 #include "StRoot/StRefMultCorr/StRefMultCorr.h"
 #include "StRoot/StRefMultCorr/CentralityMaker.h"
-//#include "StCentMaker.h"
 #include "StCuts.h"
 
-//Towers
+// Towers
 #include "StEmcADCtoEMaker/StBemcData.h"
 #include "StEmcADCtoEMaker/StEmcADCtoEMaker.h"
 #include "StEmcRawMaker/StBemcRaw.h"
@@ -65,34 +63,31 @@ Double_t standardPhi(const Double_t &phi)
 
 ClassImp(StHIOverlayAngularities)
 
-    //________________________________________________________________________
-    StHIOverlayAngularities::StHIOverlayAngularities(const char *name, StPicoDstMaker *picoMaker, const char *outName, const char *filename, StRefMultCorr* grefmultCorrUtil) : /*StJetFrameworkPicoBase(name),*/ mGRefMultCorrUtil(grefmultCorrUtil) // StMaker(name),
+//________________________________________________________________________
+StHIOverlayAngularities::StHIOverlayAngularities(const char *name, 
+                                                 StPicoDstMaker *picoMaker, 
+                                                 const char *outName, 
+                                                 const char *filename, 
+                                                 StRefMultCorr* grefmultCorrUtil) 
+  : mGRefMultCorrUtil(grefmultCorrUtil)
 {
-  //moved here
-  if (!name)return;
+  if (!name) return;
   
   fRunNumber = 0;
   mPicoDstMaker = 0x0;
   mPicoDst = 0x0;
   mPicoEvent = 0x0;
-  //grefmultCorr = 0x0;
   mOutName = outName;
   doUsePrimTracks = kFALSE;
   fJetRad = 0.4;
   fJetAlgo = 1;      // antikt_algorithm
   fJetType = 1;      // kChargedJet
   fRecombScheme = 0; // E_scheme
-  //fJetPhiMin = 0.;
- // fJetPhiMax = 2 * pi;
-  //fJetEtaMin = -0.6;
-  //fJetEtaMax = 0.6;
   fGhostArea = 0.01;
   fEventZVtxMinCut = -40.0;
   fEventZVtxMaxCut = 40.0;
   fEventRVtxMaxCut = -1;
   fEventVtxVpdVzMaxCut = -1;
-  //fTrackPtMinCut = 0.2;
-  //fTrackPtMaxCut = 30.0;
   fTracknHitsFit = 15;
   fTracknHitsRatio = 0.52;
   fCentrality = -999.;
@@ -105,16 +100,12 @@ ClassImp(StHIOverlayAngularities)
   fKgrefMult_uncorr = 0;
   fKrefMult_uncorr = 0;
   fMCFileListName = filename;
-  fHadrCorrTrackDCAZcut = 3.0;
   fMinMcPtD0 = -1;
   fSetMcAbsEtaD0 = false;
   fMcAbsEtaD0 = 1;
   fMcD0Mass = 0;
-  fMcChargedPart =0;
-  fMcNeutralPart =0;
-  fMassiveAll = true;
-  fgAlpha1 = 0;
-  fgAlpha2 = 0;
+  fMcChargedPart = 0;
+  fMcNeutralPart = 0;
   fPhiBgModulation = false;
   fQ_1 = -999;
   fQ_2 = -999;
@@ -123,12 +114,8 @@ ClassImp(StHIOverlayAngularities)
   fQ_1_rec = -999;
   fQ_2_rec = -999;
   fBgSubtraction = 1;
-  
 
-  //for (Int_t i = 0; i < 8; i++) fEmcTriggerArr[i] = 0;
-
-  for (Int_t i = 0; i < 4800; i++)
-  {
+  for (Int_t i = 0; i < 4800; i++) {
     for (Int_t j = 0; j < 7; j++)
       mTowerMatchTrkIndex[i][j] = -1;
     mTowerStatusArr[i] = 0;
@@ -145,7 +132,6 @@ ClassImp(StHIOverlayAngularities)
   fJetTrackDCAcut = 3.0;
   fJetTracknHitsFit = 15;
   fJetTracknHitsRatio = 0.52;
-  //fJetNeutralPtFraction = 0.95;
   fJetTowerEtaMin = -1.0;
   fJetTowerEtaMax = 1.0;
   fJetTowerPhiMin = 0.0;
@@ -153,26 +139,25 @@ ClassImp(StHIOverlayAngularities)
   mTowerEnergyTMin = 0.2;
   mHadronicCorrFrac = 1.;
 
-	fSetJetFracCut[0] = kTRUE;
-	fSetJetFracCut[1] = kTRUE;
-	fSetJetFracCut[2] = kTRUE;
-	
-	fSetJetMinPtCut[0] = kTRUE;
-	fSetJetMinPtCut[1] = kTRUE;
-	fSetJetMinPtCut[2] = kTRUE;
-	
-	fSetJetMinAreaCut[0] = kTRUE;
-	fSetJetMinAreaCut[1] = kTRUE;
-	fSetJetMinAreaCut[2] = kTRUE;
-	
-	fSetJetMinAbsEtaCut[0] = kTRUE;
-	fSetJetMinAbsEtaCut[1] = kTRUE;
-	fSetJetMinAbsEtaCut[2] = kTRUE;	
-		
+  fSetJetFracCut[0] = kTRUE;
+  fSetJetFracCut[1] = kTRUE;
+  fSetJetFracCut[2] = kTRUE;
+  
+  fSetJetMinPtCut[0] = kTRUE;
+  fSetJetMinPtCut[1] = kTRUE;
+  fSetJetMinPtCut[2] = kTRUE;
+  
+  fSetJetMinAreaCut[0] = kTRUE;
+  fSetJetMinAreaCut[1] = kTRUE;
+  fSetJetMinAreaCut[2] = kTRUE;
+  
+  fSetJetMinAbsEtaCut[0] = kTRUE;
+  fSetJetMinAbsEtaCut[1] = kTRUE;
+  fSetJetMinAbsEtaCut[2] = kTRUE;
+
   fNumberOfEventsToOverLay = 1;
 
-  for (Int_t i = 0; i < 100; i++)
-  {
+  for (Int_t i = 0; i < 100; i++) {
     fMcEventTracks[i].clear();
     fMcEventTowers[i].clear();
     fRecoMcEventTracks[i].clear();
@@ -187,156 +172,196 @@ ClassImp(StHIOverlayAngularities)
   fCentBin = 0;
   fTrackingEfficiency = kFALSE;
   fTrackingEfficiencyPercentage = 1.;
-  
 
-  
   SetName(name);
 }
 
-//
 //________________________________________________________________________
 StHIOverlayAngularities::~StHIOverlayAngularities()
-{ /*  */
+{
 }
 
-//
 //________________________________________________________________________
 Int_t StHIOverlayAngularities::Init()
 {
-
-  ////StJetFrameworkPicoBase::Init();
   fastjet::ClusterSequence::print_banner();
-  // position object for Emc
+  
   mBemcGeom = StEmcGeom::instance("bemc");
   mEmcPosition = new StEmcPosition();
 
-  //Loading of BEMC tables
-  //StMaker* maker = GetMaker("Eread");
   mADCtoEMaker = dynamic_cast<StEmcADCtoEMaker*>(GetMaker("Eread"));
   assert(mADCtoEMaker);
   mTables = mADCtoEMaker->getBemcData()->getTables();
 
   ifstream filelistforMCEvents(fMCFileListName.Data());
-/*
-  // get base class pointer - this class does not inherit from base class: StJetFrameworkPicoBase, but we want to reduce redundancy
-  mBaseMaker = static_cast<StJetFrameworkPicoBase *>(GetMaker("baseClassMaker"));
-  if (!mBaseMaker)
-  {
-    LOG_WARN << " No baseMaker! Skip! " << endm;
-    return kStWarn;
-  }
-*/
-  // get bad run, dead & bad tower lists
-/*
-  badRuns = mBaseMaker->GetBadRuns();
-  deadTowers = mBaseMaker->GetDeadTowers();
-  badTowers = mBaseMaker->GetBadTowers();
-*/
-  if (!filelistforMCEvents.is_open())
-  {
+
+  if (!filelistforMCEvents.is_open()) {
     LOG_ERROR << "No MC File List! Exiting!" << endm;
     return kStOk;
   }
 
   string line;
-
-  while (getline(filelistforMCEvents, line))
-  {
+  while (getline(filelistforMCEvents, line)) {
     TString s(line);
     filenamesforHIOverlay.push_back(s);
   }
 
   OutputTreeInit();
 
-  // histograms
-  //=======================================================================================================//
-  	// Event histograms:
-	hVtxZ = new TH1D("hVtxZ", ";PVtx.z() [cm]; Count", 100, -10, 10);
-	hVtxR = new TH2D("hVtxR", ";PVtx.x() [cm]; PVtx.y() [cm]", 100, -3, 3, 100, -3, 3);
-	hVzDiff = new TH1D("hVzDiff", "V_{z} - V_{z}^{VPD};V_{z} - V_{z}^{VPD} [cm];Count", 80, -4.0, 4.0);
-	hCentrality = new TH1D("hCentrality", ";C_{ID}", 9, -0.5, 8.5);
-	hCentralityW = new TH1D("hCentralityW", ";C_{ID}", 9, -0.5, 8.5);
-	
-	//Mc event
-	hMcJetConstMom            = new TH2D("hMcJetConstMom", "Mc D0 jet constituent momementum, w/o D^{0};p_{T_Jet} [GeV/c];p_{T,i} [GeV/c]", 100, 0, 40, 350, 0, 35); 
-	//hMcJetConstMom5GeV        = new TH2D("hMcJetConstMom5GeV", "Mc D0 jet (p_{T,Jet} > 5 GeV/c) constituent momentum, w/o D^{0};p_{z} [GeV/c];p_{T} [GeV/c]", 100, -30, 30, 350, 0, 35); 
-	hMcJetConstTheta	= new TH2D("hMcJetConstTheta", "Mc D0 jet constituent theta, w/o D^{0};p_{T_Jet} [GeV/c];#theta_{i}", 100, 0, 40, 300, 0, TMath::Pi());
-	hPureMcNeutralEtaPhi         = new TH2D("hPureMcNeutralEtaPhi",      "Neutral particles from MC w/o bad tower cut #eta vs #phi;#phi;#eta", 120, -TMath::Pi(), TMath::Pi(), 100, -1.1, 1.1);
-	
-	//Jet constituents:
-	hJetTracksDedx           = new TH2D("hJetTracksDedx",           "Track dE/dx vs signed |p|; sign(q) #times |p| [GeV/c];dE/dx [keV/cm]", 200, -4, 4, 400, 0, 20);
-	hJetTracksDedxAfterCuts  = new TH2D("hJetTracksDedxAfterCuts",  "Track dE/dx vs signed |p| (after cuts);sign(q) #times |p| [GeV/c];dE/dx [keV/cm]", 400, -4, 4, 200, 0, 20);
-	hJetTracksPt             = new TH1D("hJetTracksPt",         "Jet charged constituent p_{T};p_{T} [GeV/c];Count", 200, 0, 40);
-	hJetTracksEtaPhi         = new TH2D("hJetTracksEtaPhi",      "Jet charged constituents #eta vs #phi;#phi;#eta", 120, -TMath::Pi(), TMath::Pi(), 100, -1.1, 1.1);
-	hJetTracksNHitsFit       = new TH1D("hJetTracksNHitsFit",     "Jet charged constituents nHitsFit;nHitsFit;Count", 51, -0.5, 50.5);
-	hJetTracksNHitsRatio     = new TH1D("hJetTracksNHitsRatio",   "Jet charged constituents nHitsRatio;nHitsRatio;Count", 101, 0.0, 1.01);
-	hJetTracksDCA            = new TH1D("hJetTracksDCA",           "Jet charged constituents DCA;DCA [cm];Count", 100, 0, 4);
-	 
-	hJetNeutralPt         = new TH1D("hJetNeutralPt",        "Jet neutral constituent p_{T};p_{T} [GeV/c];Count", 200, 0, 40);
-	hJetNeutralEtaPhi     = new TH2D("hJetNeutralEtaPhi",    "Jet neutral constituent #eta vs #phi;#phi;#eta", 120, -TMath::Pi(), TMath::Pi(), 100, -1.1, 1.1);
-	hJetNeutralEtBefAftHC = new TH2D("hJetNeutralEtBefAftHC", "Tower E_{T} before vs after HC;E_{T}^{before} [GeV];E_{T}^{after} [GeV]", 350, 0, 35, 350, 0, 35);
-	hJetNeutralECalibBefAft = new TH2D("hJetNeutralECalibBefAft","Tower E before vs after calibration;E^{before calib} [GeV];E^{after calib} [GeV]", 350, 0, 35, 350, 0, 35);
-	
-	hJetConstCharge = new TH1D("hJetConstCharge", "Jet constituent charge;charge;Count", 3, -1.5, 1.5);
-	hJetConstRapPhi = new TH2D("hJetConstRapPhi", "Jet constituent (w/o D^{0}) y vs #phi;#phi;rapidity", 120, -TMath::Pi(), TMath::Pi(), 240, -1.2, 1.2);
-	hJetConstRapPhiICS = new TH2D("hJetConstRapPhiICS", "Jet constituent (w/o D^{0}) y vs #phi after ICS;#phi;rapidity", 120, -TMath::Pi(), TMath::Pi(), 240, -1.2, 1.2);
-	hJetConstEtaPhi = new TH2D("hJetConstEtaPhi", "Jet constituent (w/o D^{0}) #eta vs #phi;#phi;#eta", 120, -TMath::Pi(), TMath::Pi(), 200, -5, 5);
-	hJetConstEtaPhiICS = new TH2D("hJetConstEtaPhiICS", "Jet constituent (w/o D^{0}) #eta vs #phi after ICS;#phi;#eta", 120, -TMath::Pi(), TMath::Pi(), 200, -5, 5);
-	hJetConstPt = new TH1D("hJetConstPt", "Jet constituent (w/o D^{0}); p_{T} [GeV/c];Count", 350, 0, 35);
-	hJetConstPtICS = new TH1D("hJetConstPtICS", "Jet constituent (w/o D^{0}) after ICS; p_{T} [GeV/c];Count", 350, 0, 35);
-	hJetMcRecoTracksPt             = new TH1D("hJetMcRecoTracksPt",         "Jet mc reco charged constituent p_{T};p_{T} [GeV/c];Count", 200, 0, 40);
-	hJetMcRecoTracksEtaPhi         = new TH2D("hJetMcRecoTracksEtaPhi",      "Jet mc reco charged constituents #eta vs #phi;#phi;#eta", 120, -TMath::Pi(), TMath::Pi(), 100, -1.1, 1.1);
+  // ======================== Event histograms ========================
+  hVtxZ    = new TH1D("hVtxZ",    ";PVtx.z() [cm]; Count", 100, -10, 10);
+  hVtxR    = new TH2D("hVtxR",    ";PVtx.x() [cm]; PVtx.y() [cm]", 100, -3, 3, 100, -3, 3);
+  hVzDiff  = new TH1D("hVzDiff",  "V_{z} - V_{z}^{VPD};V_{z} - V_{z}^{VPD} [cm];Count", 80, -4.0, 4.0);
+  hCentrality  = new TH1D("hCentrality",  ";C_{ID}", 9, -0.5, 8.5);
+  hCentralityW = new TH1D("hCentralityW", ";C_{ID}", 9, -0.5, 8.5);
 
-	hJetMcRecoTracksNHitsFit       = new TH1D("hJetMcRecoTracksNHitsFit",     "Jet mc reco charged constituents nHitsFit;nHitsFit;Count", 51, -0.5, 50.5);
-	hJetMcRecoTracksNHitsRatio     = new TH1D("hJetMcRecoTracksNHitsRatio",   "Jet mc reco charged constituents nHitsRatio;nHitsRatio;Count", 101, 0.0, 1.01);
-	hJetMcRecoTracksDCA            = new TH1D("hJetMcRecoTracksDCA",           "Jet mc reco charged constituents DCA;DCA [cm];Count", 100, 0, 4);
+  // ======================== MC event histograms ========================
+  hMcJetConstMom = new TH2D("hMcJetConstMom", 
+    "Mc D0 jet constituent momementum, w/o D^{0};p_{T_Jet} [GeV/c];p_{T,i} [GeV/c]", 
+    100, 0, 40, 350, 0, 35);
+  hMcJetConstTheta = new TH2D("hMcJetConstTheta", 
+    "Mc D0 jet constituent theta, w/o D^{0};p_{T_Jet} [GeV/c];#theta_{i}", 
+    100, 0, 40, 300, 0, TMath::Pi());
+  hPureMcNeutralEtaPhi = new TH2D("hPureMcNeutralEtaPhi", 
+    "Neutral particles from MC w/o bad tower cut #eta vs #phi;#phi;#eta", 
+    120, -TMath::Pi(), TMath::Pi(), 100, -1.1, 1.1);
+
+  // ======================== Jet constituents histograms ========================
+  hJetTracksDedx = new TH2D("hJetTracksDedx", 
+    "Track dE/dx vs signed |p|; sign(q) #times |p| [GeV/c];dE/dx [keV/cm]", 
+    200, -4, 4, 400, 0, 20);
+  hJetTracksDedxAfterCuts = new TH2D("hJetTracksDedxAfterCuts", 
+    "Track dE/dx vs signed |p| (after cuts);sign(q) #times |p| [GeV/c];dE/dx [keV/cm]", 
+    400, -4, 4, 200, 0, 20);
+  hJetTracksPt = new TH1D("hJetTracksPt", 
+    "Jet charged constituent p_{T};p_{T} [GeV/c];Count", 200, 0, 40);
+  hJetTracksEtaPhi = new TH2D("hJetTracksEtaPhi", 
+    "Jet charged constituents #eta vs #phi;#phi;#eta", 
+    120, -TMath::Pi(), TMath::Pi(), 100, -1.1, 1.1);
+  hJetTracksNHitsFit = new TH1D("hJetTracksNHitsFit", 
+    "Jet charged constituents nHitsFit;nHitsFit;Count", 51, -0.5, 50.5);
+  hJetTracksNHitsRatio = new TH1D("hJetTracksNHitsRatio", 
+    "Jet charged constituents nHitsRatio;nHitsRatio;Count", 101, 0.0, 1.01);
+  hJetTracksDCA = new TH1D("hJetTracksDCA", 
+    "Jet charged constituents DCA;DCA [cm];Count", 100, 0, 4);
+
+  hJetNeutralPt = new TH1D("hJetNeutralPt", 
+    "Jet neutral constituent p_{T};p_{T} [GeV/c];Count", 200, 0, 40);
+  hJetNeutralEtaPhi = new TH2D("hJetNeutralEtaPhi", 
+    "Jet neutral constituent #eta vs #phi;#phi;#eta", 
+    120, -TMath::Pi(), TMath::Pi(), 100, -1.1, 1.1);
+  hJetNeutralEtBefAftHC = new TH2D("hJetNeutralEtBefAftHC", 
+    "Tower E_{T} before vs after HC;E_{T}^{before} [GeV];E_{T}^{after} [GeV]", 
+    350, 0, 35, 350, 0, 35);
+  hJetNeutralECalibBefAft = new TH2D("hJetNeutralECalibBefAft",
+    "Tower E before vs after calibration;E^{before calib} [GeV];E^{after calib} [GeV]", 
+    350, 0, 35, 350, 0, 35);
+
+  hJetConstCharge = new TH1D("hJetConstCharge", 
+    "Jet constituent charge;charge;Count", 3, -1.5, 1.5);
+  hJetConstRapPhi = new TH2D("hJetConstRapPhi", 
+    "Jet constituent (w/o D^{0}) y vs #phi;#phi;rapidity", 
+    120, -TMath::Pi(), TMath::Pi(), 240, -1.2, 1.2);
+  hJetConstRapPhiICS = new TH2D("hJetConstRapPhiICS", 
+    "Jet constituent (w/o D^{0}) y vs #phi after ICS;#phi;rapidity", 
+    120, -TMath::Pi(), TMath::Pi(), 240, -1.2, 1.2);
+  hJetConstEtaPhi = new TH2D("hJetConstEtaPhi", 
+    "Jet constituent (w/o D^{0}) #eta vs #phi;#phi;#eta", 
+    120, -TMath::Pi(), TMath::Pi(), 200, -5, 5);
+  hJetConstEtaPhiICS = new TH2D("hJetConstEtaPhiICS", 
+    "Jet constituent (w/o D^{0}) #eta vs #phi after ICS;#phi;#eta", 
+    120, -TMath::Pi(), TMath::Pi(), 200, -5, 5);
+  hJetConstPt = new TH1D("hJetConstPt", 
+    "Jet constituent (w/o D^{0}); p_{T} [GeV/c];Count", 350, 0, 35);
+  hJetConstPtICS = new TH1D("hJetConstPtICS", 
+    "Jet constituent (w/o D^{0}) after ICS; p_{T} [GeV/c];Count", 350, 0, 35);
   
-  	hJetMcRecoNeutralPt         = new TH1D("hJetMcRecoNeutralPt",        "Jet mc reco neutral constituent p_{T};p_{T} [GeV/c];Count", 200, 0, 40);
-	hJetMcRecoNeutralEtaPhi     = new TH2D("hJetMcRecoNeutralEtaPhi",    "Jet mc reco neutral constituent #eta vs #phi;#phi;#eta", 120, -TMath::Pi(), TMath::Pi(), 100, -1.1, 1.1);
-	hJetMcRecoNeutralEtBefAftHC = new TH2D("hJetMcRecoNeutralEtBefAftHC", "Mc reco tower E_{T} before vs after HC;E_{T}^{before} [GeV];E_{T}^{after} [GeV]", 350, 0, 35, 350, 0, 35);
-        
-        hJetMcRecoConstCharge = new TH1D("hJetMcRecoConstCharge", "Jet mc reco constituent charge;charge;Count", 3, -1.5, 1.5);
-        hFractionNeutralToJetPt = new TH1D("hFractionNeutralToJetPt", "; Fraction of Neutral to Jet p_{t}; Counts", 200, 0, 1);
-        
-        effJetRec00_10 = new TEfficiency("effJetRec00_10","Percentage of rec. mc jets C = 00-10%; Jet p_{T} [GeV/c];Efficiency",200,0,40);
-        effJetRec10_40 = new TEfficiency("effJetRec10_40","Percentage of rec. mc jets C = 10-40%; Jet p_{T} [GeV/c];Efficiency",200,0,40);
-        effJetRec40_80 = new TEfficiency("effJetRec40_80","Percentage of rec. mc jets C = 40-80%; Jet p_{T} [GeV/c];Efficiency",200,0,40);
+  hJetMcRecoTracksPt = new TH1D("hJetMcRecoTracksPt", 
+    "Jet mc reco charged constituent p_{T};p_{T} [GeV/c];Count", 200, 0, 40);
+  hJetMcRecoTracksEtaPhi = new TH2D("hJetMcRecoTracksEtaPhi", 
+    "Jet mc reco charged constituents #eta vs #phi;#phi;#eta", 
+    120, -TMath::Pi(), TMath::Pi(), 100, -1.1, 1.1);
+  hJetMcRecoTracksNHitsFit = new TH1D("hJetMcRecoTracksNHitsFit", 
+    "Jet mc reco charged constituents nHitsFit;nHitsFit;Count", 51, -0.5, 50.5);
+  hJetMcRecoTracksNHitsRatio = new TH1D("hJetMcRecoTracksNHitsRatio", 
+    "Jet mc reco charged constituents nHitsRatio;nHitsRatio;Count", 101, 0.0, 1.01);
+  hJetMcRecoTracksDCA = new TH1D("hJetMcRecoTracksDCA", 
+    "Jet mc reco charged constituents DCA;DCA [cm];Count", 100, 0, 4);
 
+  hJetMcRecoNeutralPt = new TH1D("hJetMcRecoNeutralPt", 
+    "Jet mc reco neutral constituent p_{T};p_{T} [GeV/c];Count", 200, 0, 40);
+  hJetMcRecoNeutralEtaPhi = new TH2D("hJetMcRecoNeutralEtaPhi", 
+    "Jet mc reco neutral constituent #eta vs #phi;#phi;#eta", 
+    120, -TMath::Pi(), TMath::Pi(), 100, -1.1, 1.1);
+  hJetMcRecoNeutralEtBefAftHC = new TH2D("hJetMcRecoNeutralEtBefAftHC", 
+    "Mc reco tower E_{T} before vs after HC;E_{T}^{before} [GeV];E_{T}^{after} [GeV]", 
+    350, 0, 35, 350, 0, 35);
 
-	etaRecoTrue00_10 = new TH2D("etaRecoTrue00_10","D0 jet eta reco vs true; #eta^{reco}_{Jet};#eta^{true}_{Jet}",300,-1.5,1.5,300,-1.5,1.5);
-	etaRecoTrue10_40 = new TH2D("etaRecoTrue10_40","D0 jet eta reco vs true; #eta^{reco}_{Jet};#eta^{true}_{Jet}",300,-1.5,1.5,300,-1.5,1.5);
-	etaRecoTrue40_80 = new TH2D("etaRecoTrue40_80","D0 jet eta reco vs true; #eta^{reco}_{Jet};#eta^{true}_{Jet}",300,-1.5,1.5,300,-1.5,1.5);
+  hJetMcRecoConstCharge = new TH1D("hJetMcRecoConstCharge", 
+    "Jet mc reco constituent charge;charge;Count", 3, -1.5, 1.5);
+  hFractionNeutralToJetPt = new TH1D("hFractionNeutralToJetPt", 
+    "; Fraction of Neutral to Jet p_{t}; Counts", 200, 0, 1);
 
-        //Neutral particles hadronic correction:
-	hJetHadrCorrNHitsFit   = new TH1D("hJetHadrCorrNHitsFit",   "Hadron. corr. track nHitsFit;nHitsFit;Count", 51, -0.5, 50.5);
-	hJetHadrCorrNHitsRatio = new TH1D("hJetHadrCorrNHitsRatio", "Hadron. corr. track nHitsRatio;nHitsRatio;Count", 101, 0.0, 1.01);
-	hJetHadrCorrDcaZ       = new TH1D("hJetHadrCorrDcaZ",       "Hadron. corr. track DCA_{z};DCA_{z} [cm];Count", 100, 0, 4);
-	hJetHadrCorrEtaVsPt    = new TH2D("hJetHadrCorrEtaVsPt",    "Hadron. corr. track #eta vs p_{T};p_{T} [GeV/c];#eta", 200, 0, 40, 150, -1.5, 1.5);
-	hJetHadrCorrE          = new TH1D("hJetHadrCorrE",    "Hadron. corr. track energy;E [GeV];Count", 200, 0, 40);
-	
-	hResponseJetPt             = new TH2D("hResponseJetPt", "hResponseJetPt; p_{T,Jet}^{reco} [GeV/c]; p_{T,Jet}^{true} [GeV/c]", 200, 0, 50, 200, 0, 50);
-	hResponseJetD0Z            = new TH2D("hResponseJetD0Z", "hResponseJetD0Z; z^{reco}; z^{true}", 200, 0, 1.01, 200, 0, 1.01);
-	hResponseJetNConst         = new TH2D("hResponseJetNConst", "hResponseJetNConst; N_{const}^{reco}; N_{const}^{true}", 61, -0.5, 60.5, 61, -0.5, 60.5);
-	hResponseJetLambda1_0_5    = new TH2D("hResponseJetLambda1_0_5", "hResponseJetLambda1_0_5; #lambda^{1, reco}_{0.5}; #lambda^{1, true}_{0.5}", 200, 0, 1.5, 200, 0, 1.5);
-	hResponseJetLambda1_1      = new TH2D("hResponseJetLambda1_1", "hResponseJetLambda1_1; #lambda^{1, reco}_{1}; #lambda^{1, true}_{1}", 200, 0, 1.5, 200, 0, 1.5);
-	hResponseJetLambda1_1_5    = new TH2D("hResponseJetLambda1_1_5", "hResponseJetLambda1_1_5; #lambda^{1, reco}_{1.5}; #lambda^{1, true}_{1.5}", 200, 0, 1.5, 200, 0, 1.5);
-  	hResponseJetLambda1_2      = new TH2D("hResponseJetLambda1_2", "hResponseJetLambda1_2; #lambda^{1, reco}_{2}; #lambda^{1, true}_{2}", 200, 0, 1.5, 200, 0, 1.5);
-  	hResponseJetLambda1_3      = new TH2D("hResponseJetLambda1_3", "hResponseJetLambda1_3; #lambda^{1, reco}_{3}; #lambda^{1, true}_{3}", 200, 0, 1.5, 200, 0, 1.5);
-  	hResponseJetMomDisp  = new TH2D("hResponseJetMomDisp", "hResponseJetMomDisp; p^{D, reco}_{T}; p^{D, true}_{T}", 200, 0, 1.01, 200, 0, 1.01);
-  	hResponseJetD0DeltaR  = new TH2D("hResponseJetD0DeltaR", "hResponseJetD0DeltaR; #Delta R_{D^{0}}^{reco}; #Delta R_{D^{0}}^{true}", 200, 0, 5, 200, 0, 5);
-  	hResponseJetD0Pt     = new TH2D("hResponseJetD0Pt", "D0 response in jet;   p_{T}^{D^{0}, reco} [GeV/c]; p_{T}^{D^{0}, true} [GeV/c]", 200, 0, 12, 200, 0, 12);
+  effJetRec00_10 = new TEfficiency("effJetRec00_10",
+    "Percentage of rec. mc jets C = 00-10%; Jet p_{T} [GeV/c];Efficiency", 200, 0, 40);
+  effJetRec10_40 = new TEfficiency("effJetRec10_40",
+    "Percentage of rec. mc jets C = 10-40%; Jet p_{T} [GeV/c];Efficiency", 200, 0, 40);
+  effJetRec40_80 = new TEfficiency("effJetRec40_80",
+    "Percentage of rec. mc jets C = 40-80%; Jet p_{T} [GeV/c];Efficiency", 200, 0, 40);
 
-  //=======================================================================================================//
+  etaRecoTrue00_10 = new TH2D("etaRecoTrue00_10",
+    "D0 jet eta reco vs true; #eta^{reco}_{Jet};#eta^{true}_{Jet}", 
+    300, -1.5, 1.5, 300, -1.5, 1.5);
+  etaRecoTrue10_40 = new TH2D("etaRecoTrue10_40",
+    "D0 jet eta reco vs true; #eta^{reco}_{Jet};#eta^{true}_{Jet}", 
+    300, -1.5, 1.5, 300, -1.5, 1.5);
+  etaRecoTrue40_80 = new TH2D("etaRecoTrue40_80",
+    "D0 jet eta reco vs true; #eta^{reco}_{Jet};#eta^{true}_{Jet}", 
+    300, -1.5, 1.5, 300, -1.5, 1.5);
 
-//  TFile f("/star/u/droy1/Y2019/STAR/Momentum_resolution_SL16d.root");
-  TFile *f;
-  f = new TFile("StRoot/StPicoD0JetAnaMaker/Files/Momentum_resolution_Run14.root");
+  // ======================== Hadronic correction histograms ========================
+  hJetHadrCorrNHitsFit = new TH1D("hJetHadrCorrNHitsFit", 
+    "Hadron. corr. track nHitsFit;nHitsFit;Count", 51, -0.5, 50.5);
+  hJetHadrCorrNHitsRatio = new TH1D("hJetHadrCorrNHitsRatio", 
+    "Hadron. corr. track nHitsRatio;nHitsRatio;Count", 101, 0.0, 1.01);
+  hJetHadrCorrDcaZ = new TH1D("hJetHadrCorrDcaZ", 
+    "Hadron. corr. track DCA_{z};DCA_{z} [cm];Count", 100, 0, 4);
+  hJetHadrCorrEtaVsPt = new TH2D("hJetHadrCorrEtaVsPt", 
+    "Hadron. corr. track #eta vs p_{T};p_{T} [GeV/c];#eta", 200, 0, 40, 150, -1.5, 1.5);
+  hJetHadrCorrE = new TH1D("hJetHadrCorrE", 
+    "Hadron. corr. track energy;E [GeV];Count", 200, 0, 40);
 
+  // ======================== Response matrix histograms ========================
+  hResponseJetPt = new TH2D("hResponseJetPt", 
+    "hResponseJetPt; p_{T,Jet}^{reco} [GeV/c]; p_{T,Jet}^{true} [GeV/c]", 200, 0, 50, 200, 0, 50);
+  hResponseJetD0Z = new TH2D("hResponseJetD0Z", 
+    "hResponseJetD0Z; z^{reco}; z^{true}", 200, 0, 1.01, 200, 0, 1.01);
+  hResponseJetNConst = new TH2D("hResponseJetNConst", 
+    "hResponseJetNConst; N_{const}^{reco}; N_{const}^{true}", 61, -0.5, 60.5, 61, -0.5, 60.5);
+  hResponseJetLambda1_0_5 = new TH2D("hResponseJetLambda1_0_5", 
+    "hResponseJetLambda1_0_5; #lambda^{1, reco}_{0.5}; #lambda^{1, true}_{0.5}", 200, 0, 1.5, 200, 0, 1.5);
+  hResponseJetLambda1_1 = new TH2D("hResponseJetLambda1_1", 
+    "hResponseJetLambda1_1; #lambda^{1, reco}_{1}; #lambda^{1, true}_{1}", 200, 0, 1.5, 200, 0, 1.5);
+  hResponseJetLambda1_1_5 = new TH2D("hResponseJetLambda1_1_5", 
+    "hResponseJetLambda1_1_5; #lambda^{1, reco}_{1.5}; #lambda^{1, true}_{1.5}", 200, 0, 1.5, 200, 0, 1.5);
+  hResponseJetLambda1_2 = new TH2D("hResponseJetLambda1_2", 
+    "hResponseJetLambda1_2; #lambda^{1, reco}_{2}; #lambda^{1, true}_{2}", 200, 0, 1.5, 200, 0, 1.5);
+  hResponseJetLambda1_3 = new TH2D("hResponseJetLambda1_3", 
+    "hResponseJetLambda1_3; #lambda^{1, reco}_{3}; #lambda^{1, true}_{3}", 200, 0, 1.5, 200, 0, 1.5);
+  hResponseJetMomDisp = new TH2D("hResponseJetMomDisp", 
+    "hResponseJetMomDisp; p^{D, reco}_{T}; p^{D, true}_{T}", 200, 0, 1.01, 200, 0, 1.01);
+  hResponseJetD0DeltaR = new TH2D("hResponseJetD0DeltaR", 
+    "hResponseJetD0DeltaR; #Delta R_{D^{0}}^{reco}; #Delta R_{D^{0}}^{true}", 200, 0, 5, 200, 0, 5);
+  hResponseJetD0Pt = new TH2D("hResponseJetD0Pt", 
+    "D0 response in jet;   p_{T}^{D^{0}, reco} [GeV/c]; p_{T}^{D^{0}, true} [GeV/c]", 
+    200, 0, 12, 200, 0, 12);
+
+  // ======================== Load momentum resolution and efficiency files ========================
+  TFile *f = new TFile("StRoot/StPicoD0JetAnaMaker/Files/Momentum_resolution_Run14.root");
   fPionMomResolution = (TF1 *)f->Get("fPion")->Clone("fPion");
   fKaonMomResolution = (TF1 *)f->Get("fKaon")->Clone("fKaon");
   fProtonMomResolution = (TF1 *)f->Get("fProton")->Clone("fProton");
 
-//  TFile effweight("/star/u/droy1/Y2019/STAR/EffWeightsInCentralityBins.root");
   TFile effweight("StRoot/StPicoD0JetAnaMaker/Files/EffWeightsInCentralityBins.root");
   fPionWeight[0] = (TGraph *)effweight.Get("Pion_0_10");
   fKaonWeight[0] = (TGraph *)effweight.Get("Kaon_0_10");
@@ -353,52 +378,32 @@ Int_t StHIOverlayAngularities::Init()
   fProtonWeight[2] = (TGraph *)effweight.Get("Proton_40_80");
   fAProtonWeight[2] = (TGraph *)effweight.Get("AProton_40_80");
 
-  // ============================ set jet parameters for fastjet wrapper  =======================
-  // recombination schemes:
+  // ======================== Setup jet parameters for fastjet wrapper ========================
   fastjet::RecombinationScheme recombScheme;
-  if (fRecombScheme == 0)
-    recombScheme = fastjet::E_scheme;
-  if (fRecombScheme == 1)
-    recombScheme = fastjet::pt_scheme;
-  if (fRecombScheme == 2)
-    recombScheme = fastjet::pt2_scheme;
-  if (fRecombScheme == 3)
-    recombScheme = fastjet::Et_scheme;
-  if (fRecombScheme == 4)
-    recombScheme = fastjet::Et2_scheme;
-  if (fRecombScheme == 5)
-    recombScheme = fastjet::BIpt_scheme;
-  if (fRecombScheme == 6)
-    recombScheme = fastjet::BIpt2_scheme;
-  if (fRecombScheme == 7)
-    recombScheme = fastjet::WTA_pt_scheme;
-  if (fRecombScheme == 8)
-    recombScheme = fastjet::WTA_modp_scheme;
-  if (fRecombScheme == 99)
-    recombScheme = fastjet::external_scheme;
+  if (fRecombScheme == 0) recombScheme = fastjet::E_scheme;
+  else if (fRecombScheme == 1) recombScheme = fastjet::pt_scheme;
+  else if (fRecombScheme == 2) recombScheme = fastjet::pt2_scheme;
+  else if (fRecombScheme == 3) recombScheme = fastjet::Et_scheme;
+  else if (fRecombScheme == 4) recombScheme = fastjet::Et2_scheme;
+  else if (fRecombScheme == 5) recombScheme = fastjet::BIpt_scheme;
+  else if (fRecombScheme == 6) recombScheme = fastjet::BIpt2_scheme;
+  else if (fRecombScheme == 7) recombScheme = fastjet::WTA_pt_scheme;
+  else if (fRecombScheme == 8) recombScheme = fastjet::WTA_modp_scheme;
+  else if (fRecombScheme == 99) recombScheme = fastjet::external_scheme;
 
-  // jet algorithm
   fastjet::JetAlgorithm algorithm;
-  if (fJetAlgo == 1)
-    algorithm = fastjet::antikt_algorithm;
-  if (fJetAlgo == 0)
-    algorithm = fastjet::kt_algorithm;
-  // extra algorithms
-  if (fJetAlgo == 2)
-    algorithm = fastjet::cambridge_algorithm;
-  if (fJetAlgo == 3)
-    algorithm = fastjet::genkt_algorithm;
-  if (fJetAlgo == 11)
-    algorithm = fastjet::cambridge_for_passive_algorithm;
-  if (fJetAlgo == 13)
-    algorithm = fastjet::genkt_for_passive_algorithm;
-  if (fJetAlgo == 99)
-    algorithm = fastjet::plugin_algorithm;
-  if (fJetAlgo == 999)
-    algorithm = fastjet::undefined_jet_algorithm;
+  if (fJetAlgo == 0) algorithm = fastjet::kt_algorithm;
+  else if (fJetAlgo == 1) algorithm = fastjet::antikt_algorithm;
+  else if (fJetAlgo == 2) algorithm = fastjet::cambridge_algorithm;
+  else if (fJetAlgo == 3) algorithm = fastjet::genkt_algorithm;
+  else if (fJetAlgo == 11) algorithm = fastjet::cambridge_for_passive_algorithm;
+  else if (fJetAlgo == 13) algorithm = fastjet::genkt_for_passive_algorithm;
+  else if (fJetAlgo == 99) algorithm = fastjet::plugin_algorithm;
+  else algorithm = fastjet::undefined_jet_algorithm;
+
   fastjet::Strategy strategy = fastjet::Best;
 
-  // setup fj wrapper
+  // Setup FJW
   fjw = new StFJWrapper("HIOverlay", "HIOverlay");
   fjw->SetHJetConstRapPhiICS(hJetConstRapPhiICS);
   fjw->SetHJetConstEtaPhiICS(hJetConstEtaPhiICS);
@@ -408,312 +413,278 @@ Int_t StHIOverlayAngularities::Init()
   fjw->SetAreaType(fastjet::active_area_explicit_ghosts);
   fjw->SetStrategy(strategy);
   fjw->SetGhostArea(fGhostArea);
-  fjw->SetR(fJetRad); //Checked
-  fjw->SetAlgorithm(algorithm);       // fJetAlgo); //Checked
-  fjw->SetRecombScheme(recombScheme); // fRecombScheme);
-  fjw->SetMaxRap(10.);                // tracks
+  fjw->SetR(fJetRad);
+  fjw->SetAlgorithm(algorithm);
+  fjw->SetRecombScheme(recombScheme);
+  fjw->SetMaxRap(10.);
 
-
-  // // ghost-area specifications
-  // Double_t ghost_maxrap = 1.2;
-  // fastjet::GhostedAreaSpec area_spec(ghost_maxrap);
-  // fastjet::AreaDefinition area_def(fastjet::active_area_explicit_ghosts, area_spec);
-
-////////////////////////////////////////////////////
-cout << "----------------------------" << endl;
-cout << (fSetMcSeed  == 0 ? "MC random seed" : fSetMcSeed  == 1 ? "MC seed = eventId + runId" : "Weird" ) << endl;
-cout << "----------------------------" << endl;
-cout << "Run cuts" << endl;
-cout << (fRunBadlist  == 0 ? "Hanseul's bad run 2014 list" : fRunBadlist  == 1 ? "Neil's bad run 2014 list" : "None bad run listed used!!!") << endl;
-cout << "----------------------------" << endl;
-cout << "Event cuts" << endl;
-cout << "V_z min =< " << fEventZVtxMinCut << " cm" << endl;
-cout << "V_z max =< " << fEventZVtxMaxCut << " cm" << endl;
-cout << "V_r =< " << fEventRVtxMaxCut << " cm" << endl;
-cout << "|V_z-V_{z,VPD}| =< " << fEventVtxVpdVzMaxCut << " cm" << endl;
-cout << "V_x !=0 && V_y !=0 && V_z !=0" << endl;
-cout << "Triggers: {";
-bool first = true;
-for (const Int_t &trigger : fEventTriggers) {
+  // ======================== Print analysis configuration ========================
+  cout << "----------------------------" << endl;
+  cout << (fSetMcSeed == 0 ? "MC random seed" : "MC seed = eventId + runId") << endl;
+  cout << "----------------------------" << endl;
+  cout << "Run cuts" << endl;
+  cout << (fRunBadlist == 0 ? "Hanseul's bad run 2014 list" : 
+           fRunBadlist == 1 ? "Neil's bad run 2014 list" : "None bad run listed used!!!") << endl;
+  cout << "----------------------------" << endl;
+  cout << "Event cuts" << endl;
+  cout << "V_z min =< " << fEventZVtxMinCut << " cm" << endl;
+  cout << "V_z max =< " << fEventZVtxMaxCut << " cm" << endl;
+  cout << "V_r =< " << fEventRVtxMaxCut << " cm" << endl;
+  cout << "|V_z-V_{z,VPD}| =< " << fEventVtxVpdVzMaxCut << " cm" << endl;
+  cout << "V_x !=0 && V_y !=0 && V_z !=0" << endl;
+  cout << "Triggers: {";
+  bool first = true;
+  for (const Int_t &trigger : fEventTriggers) {
     if (!first) cout << ", ";
     cout << trigger;
     first = false;
-}
-cout << "}" << endl;
-cout << "----------------------------" << endl;
-cout << "Jet constituent cuts" << endl;
-cout << "********************" << endl;
-cout << "  D0 meson" << endl;
-cout << "MC particle mass: " << fMcD0Mass << " GeV/c^2"   << endl;
-cout << "pT_min => " << fMinMcPtD0 << " GeV/c" << endl; 
-TString etamaxabs;
-if (fSetMcAbsEtaD0) etamaxabs=TString::Format("%.2f", fMcAbsEtaD0); else etamaxabs = "INF";
-cout << "|eta| =< " << etamaxabs << endl; 
-cout << "********************" << endl;
-cout << "  Charged tracks" << endl;
-TString GlobPrim;
-if (doUsePrimTracks) GlobPrim = "Primary tracks"; else GlobPrim = "Global tracks";
-cout << GlobPrim << endl;
-cout << "pT_min => " << fMinJetTrackPt << " GeV/c" << endl; 
-cout << "pT_max =< " << fMaxJetTrackPt << " GeV/c" << endl; 
-cout << "eta_min => " << fJetTrackEtaMin << endl; 
-cout << "eta_max =< " << fJetTrackEtaMax << endl; 
-cout << "nHitsFit => " << fJetTracknHitsFit << endl;
-cout << "nHitsRatio => " << fJetTracknHitsRatio << endl;
-cout << "Particle mass: " << fChargedPart << " GeV/c^2"   << endl;
-cout << "MC particle mass: " << fMcChargedPart << " GeV/c^2"   << endl;
-cout << "DCA =< " << fJetTrackDCAcut << " cm" << endl;
-cout << "********************" << endl;
-cout << "  Towers " << endl;
-cout << "ET => " << mTowerEnergyTMin << " GeV" << endl;
-cout << (fSetTowerCalibrEnergy  == true ? "Hanseul's energy calibration" : fSetTowerCalibrEnergy  == false ? "Production energy calibration" : "Weird") << endl;
-cout << (fTowerBadlist  == 0 ? "Hanseul's bad tower 2014 list" : fTowerBadlist  == 1 ? "Neil's bad tower 2014 list" : "None bad tower listed used!!!") << endl;
-cout << "Particle mass: " << fNeutralPart << " GeV/c^2"  << endl; 
-cout << "MC particle mass: " << fMcNeutralPart << " GeV/c^2"  << endl;
-cout << "********************" << endl;
-cout << "  Hadronic correction " << endl;
-cout << "Fraction of hadr. corr. = " << mHadronicCorrFrac << endl;
-cout << GlobPrim << endl;
-cout << "pT_min => " << fMinJetTrackPt << " GeV/c" << endl; 
-cout << "pT_max =< " << fMaxJetTrackPt << " GeV/c" << endl; 
-cout << "eta_min => " << fJetTrackEtaMin << endl; 
-cout << "eta_max =< " << fJetTrackEtaMax << endl; 
-cout << "nHitsFit => " << fJetTracknHitsFit << endl;
-cout << "nHitsRatio => " << fJetTracknHitsRatio << endl;
-cout << "Particle mass: " << fHadronicCorrMass << " GeV/c^2" << endl;
-//cout << "DCA_z =< " << fHadrCorrTrackDCAZcut << " cm" << endl;
-cout << (fSetDcaZHadronCorr  == true ? "DCA_Z" : fSetDcaZHadronCorr  == false ? "DCA" : "Weird") << " =< " << fDcaZHadronCorr << " cm" << endl; 
-cout << endl;
-cout << "----------------------------" << endl;
-cout << "  Jets " << endl;
+  }
+  cout << "}" << endl;
+  cout << "----------------------------" << endl;
+  cout << "Jet constituent cuts" << endl;
+  cout << "********************" << endl;
+  cout << "  D0 meson" << endl;
+  cout << "MC particle mass: " << fMcD0Mass << " GeV/c^2" << endl;
+  cout << "pT_min => " << fMinMcPtD0 << " GeV/c" << endl;
+  TString etamaxabs = (fSetMcAbsEtaD0) ? TString::Format("%.2f", fMcAbsEtaD0) : "INF";
+  cout << "|eta| =< " << etamaxabs << endl;
+  cout << "********************" << endl;
+  cout << "  Charged tracks" << endl;
+  cout << (doUsePrimTracks ? "Primary tracks" : "Global tracks") << endl;
+  cout << "pT_min => " << fMinJetTrackPt << " GeV/c" << endl;
+  cout << "pT_max =< " << fMaxJetTrackPt << " GeV/c" << endl;
+  cout << "eta_min => " << fJetTrackEtaMin << endl;
+  cout << "eta_max =< " << fJetTrackEtaMax << endl;
+  cout << "nHitsFit => " << fJetTracknHitsFit << endl;
+  cout << "nHitsRatio => " << fJetTracknHitsRatio << endl;
+  cout << "Particle mass: " << fChargedPart << " GeV/c^2" << endl;
+  cout << "MC particle mass: " << fMcChargedPart << " GeV/c^2" << endl;
+  cout << "DCA =< " << fJetTrackDCAcut << " cm" << endl;
+  cout << "********************" << endl;
+  cout << "  Towers" << endl;
+  cout << "ET => " << mTowerEnergyTMin << " GeV" << endl;
+  cout << (fSetTowerCalibrEnergy ? "Hanseul's energy calibration" : "Production energy calibration") << endl;
+  cout << (fTowerBadlist == 0 ? "Hanseul's bad tower 2014 list" : 
+           fTowerBadlist == 1 ? "Neil's bad tower 2014 list" : "None bad tower listed used!!!") << endl;
+  cout << "Particle mass: " << fNeutralPart << " GeV/c^2" << endl;
+  cout << "MC particle mass: " << fMcNeutralPart << " GeV/c^2" << endl;
+  cout << "********************" << endl;
+  cout << "  Hadronic correction" << endl;
+  cout << "Fraction of hadr. corr. = " << mHadronicCorrFrac << endl;
+  cout << (doUsePrimTracks ? "Primary tracks" : "Global tracks") << endl;
+  cout << "pT_min => " << fMinJetTrackPt << " GeV/c" << endl;
+  cout << "pT_max =< " << fMaxJetTrackPt << " GeV/c" << endl;
+  cout << "eta_min => " << fJetTrackEtaMin << endl;
+  cout << "eta_max =< " << fJetTrackEtaMax << endl;
+  cout << "nHitsFit => " << fJetTracknHitsFit << endl;
+  cout << "nHitsRatio => " << fJetTracknHitsRatio << endl;
+  cout << "Particle mass: " << fHadronicCorrMass << " GeV/c^2" << endl;
+  cout << (fSetDcaZHadronCorr ? "DCA_Z" : "DCA") << " =< " << fDcaZHadronCorr << " cm" << endl;
+  cout << endl;
+  cout << "----------------------------" << endl;
+  cout << "  Jets" << endl;
+  cout << "**********" << endl;
+  cout << "Jet type: " << (fJetType == 0 ? "Full jets" : 
+                            fJetType == 1 ? "Charged jets" : 
+                            fJetType == 2 ? "Neutral jets" : "?") << endl;
+  cout << "Jet rec. algorithm: " << (fJetAlgo == 1 ? "anti-kt" : "Other") << endl;
+  cout << "Jet R = " << fJetRad << endl;
+  cout << "Jet area min >= " << fJetMinAreaCut << endl;
+  cout << "|eta_jet| <= " << 1. - fJetRad << endl;
+  cout << "fJetFractionNeutralToJetPt: " << fJetFractionNeutralToJetPt << endl;
+  cout << "**********" << endl;
+  cout << "  Background estimation" << endl;
+  switch (fBgSubtraction) {
+    case 1:
+      cout << "Area based method + Jet shape method" << endl;
+      break;
+    case 2:
+      cout << "ICS method" << endl;
+      break;
+    case 12:
+      cout << "Both methods" << endl;
+      break;
+    default:
+    case 21:
+      cout << "Both methods" << endl;
+    break;
+      cerr << "Warning: Unknown fBgSubtraction option " << fBgSubtraction << endl;
+      exit(1);
+  }
+  cout << "Background phi modulation: " << (fPhiBgModulation ? "true" : "false") << endl;
+  cout << "Number of skipped hardest jets: " << fJetNHardestSkipped_010 
+       << " for 0-10% and " << fJetNHardestSkipped_1080 << " for 10-80%" << endl;
+  cout << (fSetJetFixedSeed ? Form("Fastjet with fixed seed: %d", fJetFJSeed) 
+                            : "Fastjet with random seed") << endl;
 
-cout << "**********" << endl;
-cout << "Jet type: " << (fJetType == 0 ? "Full jets" : fJetType == 1 ? "Charged jets" : fJetType == 2 ? "Neutral jets" : "?")  << endl;
-cout << "Jet rec. algorithm: " << (antikt_algorithm == 0 ? "kt" : antikt_algorithm == 1 ? "anti-kt" : "Other" ) << endl;
-cout << "Jet R = " << fJetRad << endl;
-cout << "Jet area min >= " << fJetMinAreaCut << endl;
-cout << "|eta_jet| <= " << 1.-fJetRad << endl;
-cout << "fJetFractionNeutralToJetPt: " <<fJetFractionNeutralToJetPt << endl;
-cout << "**********" << endl;
-cout << "  Backgroud estimation " << endl;
-// 0 - Area based, 1 - ICS, 2 - jet shape
-	// 0 - Area based, 1 - ICS, 2 - jet shape
-	switch (fBgSubtraction) {
-	    case 0:
-		cout << "Area based method" << endl;
-		break;
-
-	    case 1:
-		cout << "ICS method" << endl;
-		break;
-
-	    case 2:
-		cout << "Jet shape method" << endl;
-		break;
-
-	    default:
-		std::cerr << "Warning: Unknown fBgSubtraction option " << fBgSubtraction << std::endl;
-		exit(1); // 1 bývá běžnější pro chybu
-	}
-cout << "Massive particles? " << (fMassiveAll == false ? "false" : fMassiveAll == true ? "true" : "Weird") << endl;
-cout << "alpha_1: " << fgAlpha1 << " alpha_2: " << fgAlpha2 << endl;
-cout << "Background phi modulation: " <<  (fPhiBgModulation == false ? "false" : fPhiBgModulation == true ? "true" : "Weird") << endl;
-cout << "Number of skipped hardest jets: " << fJetNHardestSkipped_010 << " for 0-10\%" << " and " << fJetNHardestSkipped_1080 << " for 10-80\%" << endl; 
-cout << (fSetJetFixedSeed  == true ? Form("Fastjet with fixed seed: %d",fJetFJSeed) : fSetJetFixedSeed  == false ? "Fastjet with random seed" : "Weird") << endl;
   return kStOK;
 }
-//
-// Function:  write to output file and close
+
 //________________________________________________________________________
 Int_t StHIOverlayAngularities::Finish()
 {
   cout << "StHIOverlayAngularities::Finish()\n";
 
-  //  Write  to file and close it.
-  if (mOutName != "")
-  {
+  if (mOutName != "") {
     TFile *fout = new TFile(mOutName.Data(), "UPDATE");
     fout->cd();
-    
+
     TList *infoList = outputTree->GetUserInfo();
-    ////////-------------------------------------------------------------------------------------------------------------
     TString paramStr;
-    
-    TString runListStr;    
-    runListStr = (fRunBadlist == 0) ? "Hanseul's bad run 2014 list\n" :
-	         (fRunBadlist == 1) ? "Neil's bad run 2014 list\n" :
-		                     "No bad run list used!!!\n";    
-            
-    TString mcRandomSeed;
-    mcRandomSeed = 	(fSetMcSeed  == 0) ? "MC random seed\n" : 
-    			(fSetMcSeed  == 1) ? "MC seed = eventId + runId\n" :
-    			"Weird";
-             
-                                  
-paramStr.Form(
-    "----------------------------\n"
-    "%s"
-    "----------------------------\n"
-    "Run cuts\n"
-    "%s"
-    "----------------------------\n"
-    "Event cuts\n"
-    "V_z min =< %.2f cm\n"
-    "V_z max =< %.2f cm\n"
-    "V_r =< %.2f cm\n"
-    "|V_z-V_{z,VPD}| =< %.2f cm\n"
-    "V_x != 0 && V_y != 0 && V_z != 0\n"
-    "Triggers: {",
-    mcRandomSeed.Data(),
-    runListStr.Data(),
-    fEventZVtxMinCut,
-    fEventZVtxMaxCut,
-    fEventRVtxMaxCut,
-    fEventVtxVpdVzMaxCut
-);
 
-// Přidání seznamu triggerů
-bool first = true;
-for (const Int_t &trigger : fEventTriggers) {
-    if (!first) paramStr += ", ";
-    paramStr += TString::Format("%d", trigger);
-    first = false;
-}
-paramStr += "}\n----------------------------\n";
+    TString runListStr = (fRunBadlist == 0) ? "Hanseul's bad run 2014 list\n" :
+                         (fRunBadlist == 1) ? "Neil's bad run 2014 list\n" :
+                         "No bad run list used!!!\n";
 
-paramStr += TString::Format("Jet constituent cuts\n"
-              "********************\n"
-              "  D0 meson\n"
-              "MC particle mass: %.6f GeV/c^2\n"
-              "pT_min => %.2f GeV/c\n"
-              "|eta| =< %s\n"
-              "********************\n",
-              fMcD0Mass, fMinMcPtD0, (fSetMcAbsEtaD0) ? TString::Format("%.2f", fMcAbsEtaD0).Data() : "INF");
+    TString mcRandomSeed = (fSetMcSeed == 0) ? "MC random seed\n" :
+                           (fSetMcSeed == 1) ? "MC seed = eventId + runId\n" :
+                           "Weird";
 
-// Charged tracks
-paramStr += TString::Format("  Charged tracks\n"
-              "%s\n"
-              "pT_min => %.2f GeV/c\n"
-              "pT_max =< %.2f GeV/c\n"
-              "eta_min => %.2f\n"
-              "eta_max =< %.2f\n"
-              "nHitsFit => %d\n"
-              "nHitsRatio => %.2f\n"
-              "Particle mass: %.6f GeV/c^2\n"
-              "MC particle mass: %.6f GeV/c^2\n"
-              "DCA =< %.2f cm\n"
-              "********************\n",
-              doUsePrimTracks ? "Primary tracks" : "Global tracks",
-              fMinJetTrackPt, fMaxJetTrackPt, fJetTrackEtaMin, fJetTrackEtaMax, 
-              fJetTracknHitsFit, fJetTracknHitsRatio, fChargedPart, fMcChargedPart, fJetTrackDCAcut);
+    paramStr.Form(
+      "----------------------------\n"
+      "%s"
+      "----------------------------\n"
+      "Run cuts\n"
+      "%s"
+      "----------------------------\n"
+      "Event cuts\n"
+      "V_z min =< %.2f cm\n"
+      "V_z max =< %.2f cm\n"
+      "V_r =< %.2f cm\n"
+      "|V_z-V_{z,VPD}| =< %.2f cm\n"
+      "V_x != 0 && V_y != 0 && V_z != 0\n"
+      "Triggers: {",
+      mcRandomSeed.Data(),
+      runListStr.Data(),
+      fEventZVtxMinCut,
+      fEventZVtxMaxCut,
+      fEventRVtxMaxCut,
+      fEventVtxVpdVzMaxCut
+    );
 
-// Towers
-TString EventListStrA;
-EventListStrA = (fSetTowerCalibrEnergy  == true ? "Hanseul's energy calibration\n" : fSetTowerCalibrEnergy  == false ? "Production energy calibration\n" : "Weird\n");
+    bool first = true;
+    for (const Int_t &trigger : fEventTriggers) {
+      if (!first) paramStr += ", ";
+      paramStr += TString::Format("%d", trigger);
+      first = false;
+    }
+    paramStr += "}\n----------------------------\n";
 
-TString EventListStr;
-EventListStr = 	(fTowerBadlist  == 0 ? "Hanseul's bad tower 2014 list\n" : 
-		fTowerBadlist  == 1 ? "Neil's bad tower 2014 list\n" : 
-		"None bad tower listed used!!!\n");
+    paramStr += TString::Format(
+      "Jet constituent cuts\n"
+      "********************\n"
+      "  D0 meson\n"
+      "MC particle mass: %.6f GeV/c^2\n"
+      "pT_min => %.2f GeV/c\n"
+      "|eta| =< %s\n"
+      "********************\n",
+      fMcD0Mass, fMinMcPtD0, 
+      (fSetMcAbsEtaD0) ? TString::Format("%.2f", fMcAbsEtaD0).Data() : "INF");
 
-paramStr += TString::Format("  Towers\n"
-              "ET => %.2f GeV\n"
-              "%s"
-              "%s"
-              "Particle mass: %.6f GeV/c^2\n"
-              "MC particle mass: %.6f GeV/c^2\n"
-              "********************\n",
-              mTowerEnergyTMin, EventListStr.Data(), EventListStrA.Data(), fNeutralPart, fMcNeutralPart);
+    paramStr += TString::Format(
+      "  Charged tracks\n"
+      "%s\n"
+      "pT_min => %.2f GeV/c\n"
+      "pT_max =< %.2f GeV/c\n"
+      "eta_min => %.2f\n"
+      "eta_max =< %.2f\n"
+      "nHitsFit => %d\n"
+      "nHitsRatio => %.2f\n"
+      "Particle mass: %.6f GeV/c^2\n"
+      "MC particle mass: %.6f GeV/c^2\n"
+      "DCA =< %.2f cm\n"
+      "********************\n",
+      doUsePrimTracks ? "Primary tracks" : "Global tracks",
+      fMinJetTrackPt, fMaxJetTrackPt, fJetTrackEtaMin, fJetTrackEtaMax,
+      fJetTracknHitsFit, fJetTracknHitsRatio, fChargedPart, fMcChargedPart, fJetTrackDCAcut);
 
-TString paramHadr;
+    TString EventListStrA = (fSetTowerCalibrEnergy == true) ? "Hanseul's energy calibration\n" :
+                            (fSetTowerCalibrEnergy == false) ? "Production energy calibration\n" :
+                            "Weird\n";
 
-paramHadr = (fSetDcaZHadronCorr  == true ? "DCA_Z\n" : fSetDcaZHadronCorr  == false ? "DCA\n" : "Weird\n");
+    TString EventListStr = (fTowerBadlist == 0) ? "Hanseul's bad tower 2014 list\n" :
+                           (fTowerBadlist == 1) ? "Neil's bad tower 2014 list\n" :
+                           "None bad tower listed used!!!\n";
 
-// Hadronic correction
-paramStr += TString::Format("  Hadronic correction\n"
-              "Fraction of hadr. corr. = %.2f\n"
-              "%s\n"
-              "pT_min => %.2f GeV/c\n"
-              "pT_max =< %.2f GeV/c\n"
-              "eta_min => %.2f\n"
-              "eta_max =< %.2f\n"
-              "nHitsFit => %d\n"
-              "nHitsRatio => %.2f\n"
-              "Particle mass: %.6f GeV/c^2\n"
-              //"DCA_z =< %.2f cm\n"
-              "%s =< %.2f cm\n"
-              "----------------------------\n",
-              mHadronicCorrFrac,
-              doUsePrimTracks ? "Primary tracks" : "Global tracks",
-              fMinJetTrackPt, fMaxJetTrackPt, fJetTrackEtaMin, fJetTrackEtaMax,
-              fJetTracknHitsFit, fJetTracknHitsRatio, fHadronicCorrMass, 
-              paramHadr.Data(), fDcaZHadronCorr);
+    paramStr += TString::Format(
+      "  Towers\n"
+      "ET => %.2f GeV\n"
+      "%s"
+      "%s"
+      "Particle mass: %.6f GeV/c^2\n"
+      "MC particle mass: %.6f GeV/c^2\n"
+      "********************\n",
+      mTowerEnergyTMin, EventListStr.Data(), EventListStrA.Data(), fNeutralPart, fMcNeutralPart);
 
-// Jets
-paramStr += TString::Format("  Jets\n"
-              "**********\n"
-              "Jet type: %s\n"
-              "Jet rec. algorithm: %s\n"
-              "Jet R = %.2f\n"
-              "Jet area min >= %.2f\n"
-              "|eta_jet| <= %.2f\n"
-              "fJetFractionNeutralToJetPt: %.2f\n"
-              "**********\n",
-              fJetType == 0 ? "Full jets" : fJetType == 1 ? "Charged jets" : fJetType == 2 ? "Neutral jets" : "?",
-              antikt_algorithm == 0 ? "kt" : antikt_algorithm == 1 ? "anti-kt" : "Other",
-              fJetRad, fJetMinAreaCut, 1.0 - fJetRad, fJetFractionNeutralToJetPt);
+    TString paramHadr = (fSetDcaZHadronCorr == true) ? "DCA_Z\n" :
+                        (fSetDcaZHadronCorr == false) ? "DCA\n" :
+                        "Weird\n";
 
-// Background estimation
-//Parama
-	switch (fBgSubtraction) {
-	    case 0:
-		paramStr +=  "Area based method\n";
-		break;
+    paramStr += TString::Format(
+      "  Hadronic correction\n"
+      "Fraction of hadr. corr. = %.2f\n"
+      "%s\n"
+      "pT_min => %.2f GeV/c\n"
+      "pT_max =< %.2f GeV/c\n"
+      "eta_min => %.2f\n"
+      "eta_max =< %.2f\n"
+      "nHitsFit => %d\n"
+      "nHitsRatio => %.2f\n"
+      "Particle mass: %.6f GeV/c^2\n"
+      "%s =< %.2f cm\n"
+      "----------------------------\n",
+      mHadronicCorrFrac,
+      doUsePrimTracks ? "Primary tracks" : "Global tracks",
+      fMinJetTrackPt, fMaxJetTrackPt, fJetTrackEtaMin, fJetTrackEtaMax,
+      fJetTracknHitsFit, fJetTracknHitsRatio, fHadronicCorrMass,
+      paramHadr.Data(), fDcaZHadronCorr);
 
-	    case 1:
-		paramStr +=  "ICS method\n";
-		break;
+    paramStr += TString::Format(
+      "  Jets\n"
+      "**********\n"
+      "Jet type: %s\n"
+      "Jet rec. algorithm: %s\n"
+      "Jet R = %.2f\n"
+      "Jet area min >= %.2f\n"
+      "|eta_jet| <= %.2f\n"
+      "fJetFractionNeutralToJetPt: %.2f\n"
+      "**********\n",
+      fJetType == 0 ? "Full jets" : fJetType == 1 ? "Charged jets" : fJetType == 2 ? "Neutral jets" : "?",
+      fJetAlgo == 1 ? "anti-kt" : "Other",
+      fJetRad, fJetMinAreaCut, 1.0 - fJetRad, fJetFractionNeutralToJetPt);
 
-	    case 2:
-		paramStr +=  "Jet shape method";
-		break;
+    switch (fBgSubtraction) {
+      case 1:
+        paramStr += "Area based method + Jet shape method\n";
+        break;
+      case 2:
+        paramStr += "ICS method\n";
+        break;
+      case 12:
+        paramStr += "Both methods\n";
+        break;
+      case 21:
+        paramStr += "Both methods\n";
+      break;  
+      default:
+        cerr << "Warning: Unknown fBgSubtraction option " << fBgSubtraction << endl;
+        exit(1);
+    }
 
-	    default:
-		std::cerr << "Warning: Unknown fBgSubtraction option " << fBgSubtraction << std::endl;
-		exit(1);
-	}
-paramStr += TString::Format("  Background estimation\n"
-              "Massive particles? %s\n"
-              "alpha_1: %.3f alpha_2: %.3f\n",
-              fMassiveAll ? "true" : "false", fgAlpha1, fgAlpha2);
- /*             
-              paramStr += TString::Format("  Background estimation\n"
-              "Massive particles? %s\n"
-              "alpha_1: %.3f\n",
-              fMassiveAll ? "true" : "false", fgAlpha1);
-   */
- paramStr += "0_0: 4it, R = 0.05; 1_0: 3it, R = 0.125; 2_0: 2it, R = 0.1-0.175; 3_0: 2it, R = 0.15-0.1 \n";       
- paramStr += "Default one: 2it, 0.15, 0.2 \n";                 
- paramStr += TString::Format("Background phi modulation? %s\n",
-              fPhiBgModulation ? "true" : "false");      
- paramStr += TString::Format("Number of skipped hardest jets: %d for 0-10%% and %d for 10-80%%\n", fJetNHardestSkipped_010,fJetNHardestSkipped_1080); 
- 
- 	switch (fSetJetFixedSeed) {
-	    case 0:
-		paramStr +=  "Fastjet with random seed";
-		break;
+    paramStr += TString::Format(
+      "  Background estimation\n"
+      "Default one: 2it, 0.15, 0.2\n"
+      "Background phi modulation? %s\n"
+      "Number of skipped hardest jets: %d for 0-10%% and %d for 10-80%%\n"
+      "%s\n",
+      fPhiBgModulation ? "true" : "false",
+      fJetNHardestSkipped_010, fJetNHardestSkipped_1080,
+      fSetJetFixedSeed ? TString::Format("Fastjet with fixed seed: %d", fJetFJSeed).Data() : 
+                         "Fastjet with random seed");
 
-	    case 1:
-		paramStr +=  TString::Format("Fastjet with fixed seed: %d",fJetFJSeed);
-		break;
-	}            
-   
-              
-
-
-    ////////-------------------------------------------------------------------------------------------------------------
     infoList->Add(new TObjString(paramStr));
-    
+
+    // Write histograms
     TDirectory* dirEvent = fout->mkdir("event");
     dirEvent->cd();
     hVtxZ->Write();
@@ -723,105 +694,80 @@ paramStr += TString::Format("  Background estimation\n"
     hCentralityW->Write();
     fout->cd();
 
-    //Mc event:
-    	TDirectory* dirMcEvent = fout->mkdir("mcEvent");
-    	dirMcEvent->cd();
-    	hPureMcNeutralEtaPhi->Write();
-    	hMcJetConstMom->Write();
-    	hMcJetConstTheta->Write();
-	//hMcJetConstMom5GeV->Write();
-	fout->cd();
+    TDirectory* dirMcEvent = fout->mkdir("mcEvent");
+    dirMcEvent->cd();
+    hPureMcNeutralEtaPhi->Write();
+    hMcJetConstMom->Write();
+    hMcJetConstTheta->Write();
+    fout->cd();
 
-    //Jet constituents:
-	TDirectory* dirJetConstituents = fout->mkdir("jetConstituents");
-	dirJetConstituents->cd();
-	hJetTracksDedx->Write();
-	hJetTracksDedxAfterCuts->Write();
-	hJetTracksPt->Write();
-	hJetTracksEtaPhi->Write();
-	hJetTracksNHitsFit->Write();
-	hJetTracksNHitsRatio->Write();
-	hJetTracksDCA->Write();
-        hJetMcRecoTracksPt->Write();
-	hJetMcRecoTracksEtaPhi->Write();
-	hJetMcRecoTracksNHitsFit->Write();
-	hJetMcRecoTracksNHitsRatio->Write();
-	hJetMcRecoTracksDCA->Write();
-	hJetNeutralPt->Write();
-	hJetNeutralEtaPhi->Write();
-	hJetNeutralEtBefAftHC->Write();
-	hJetNeutralECalibBefAft->Write();
-	hJetMcRecoNeutralPt->Write();
-	hJetMcRecoNeutralEtaPhi->Write();
-	hJetMcRecoNeutralEtBefAftHC->Write();
-	hJetConstCharge->Write();
-	hJetConstEtaPhi->Write();
-	hJetConstEtaPhiICS->Write();  
-	hJetConstRapPhi->Write();
-	hJetConstRapPhiICS->Write();   
-	hJetConstPt->Write();
-	hJetConstPtICS->Write();  
-	hJetMcRecoConstCharge->Write();
-	hFractionNeutralToJetPt->Write();
-	effJetRec00_10->Write();
-	effJetRec10_40->Write();
-	effJetRec40_80->Write();
-	etaRecoTrue00_10->Write();
-	etaRecoTrue10_40->Write();
-	etaRecoTrue40_80->Write();
-	fout->cd();
+    TDirectory* dirJetConstituents = fout->mkdir("jetConstituents");
+    dirJetConstituents->cd();
+    hJetTracksDedx->Write();
+    hJetTracksDedxAfterCuts->Write();
+    hJetTracksPt->Write();
+    hJetTracksEtaPhi->Write();
+    hJetTracksNHitsFit->Write();
+    hJetTracksNHitsRatio->Write();
+    hJetTracksDCA->Write();
+    hJetMcRecoTracksPt->Write();
+    hJetMcRecoTracksEtaPhi->Write();
+    hJetMcRecoTracksNHitsFit->Write();
+    hJetMcRecoTracksNHitsRatio->Write();
+    hJetMcRecoTracksDCA->Write();
+    hJetNeutralPt->Write();
+    hJetNeutralEtaPhi->Write();
+    hJetNeutralEtBefAftHC->Write();
+    hJetNeutralECalibBefAft->Write();
+    hJetMcRecoNeutralPt->Write();
+    hJetMcRecoNeutralEtaPhi->Write();
+    hJetMcRecoNeutralEtBefAftHC->Write();
+    hJetConstCharge->Write();
+    hJetConstEtaPhi->Write();
+    hJetConstEtaPhiICS->Write();
+    hJetConstRapPhi->Write();
+    hJetConstRapPhiICS->Write();
+    hJetConstPt->Write();
+    hJetConstPtICS->Write();
+    hJetMcRecoConstCharge->Write();
+    hFractionNeutralToJetPt->Write();
+    effJetRec00_10->Write();
+    effJetRec10_40->Write();
+    effJetRec40_80->Write();
+    etaRecoTrue00_10->Write();
+    etaRecoTrue10_40->Write();
+    etaRecoTrue40_80->Write();
+    fout->cd();
 
-   //Neutral particles hadronic correction:
-   TDirectory* dirHadronCorr = fout->mkdir("hadronCorr");
-   dirHadronCorr->cd();
-   hJetHadrCorrEtaVsPt->Write();
-   hJetHadrCorrE->Write();
-   hJetHadrCorrNHitsFit->Write();
-   hJetHadrCorrNHitsRatio->Write();
-   hJetHadrCorrDcaZ->Write();
-   fout->cd();
-   
-   
-   TDirectory* dirResponseMatrix = fout->mkdir("responseMatrix");
-   dirResponseMatrix->cd();
-   hResponseJetPt->Write();
-   hResponseJetD0Z->Write();
-   hResponseJetNConst->Write();
-   hResponseJetLambda1_0_5->Write();
-   hResponseJetLambda1_1->Write();
-   hResponseJetLambda1_1_5->Write();
-   hResponseJetLambda1_2->Write();
-   hResponseJetLambda1_3->Write();
-   hResponseJetMomDisp->Write();
-   hResponseJetD0DeltaR->Write();
-   hResponseJetD0Pt->Write();
-   fout->cd();
+    TDirectory* dirHadronCorr = fout->mkdir("hadronCorr");
+    dirHadronCorr->cd();
+    hJetHadrCorrEtaVsPt->Write();
+    hJetHadrCorrE->Write();
+    hJetHadrCorrNHitsFit->Write();
+    hJetHadrCorrNHitsRatio->Write();
+    hJetHadrCorrDcaZ->Write();
+    fout->cd();
+
+    TDirectory* dirResponseMatrix = fout->mkdir("responseMatrix");
+    dirResponseMatrix->cd();
+    hResponseJetPt->Write();
+    hResponseJetD0Z->Write();
+    hResponseJetNConst->Write();
+    hResponseJetLambda1_0_5->Write();
+    hResponseJetLambda1_1->Write();
+    hResponseJetLambda1_1_5->Write();
+    hResponseJetLambda1_2->Write();
+    hResponseJetLambda1_3->Write();
+    hResponseJetMomDisp->Write();
+    hResponseJetD0DeltaR->Write();
+    hResponseJetD0Pt->Write();
+    fout->cd();
 
     outputTree->Write();
-
-/*
-    // write all histograms
-    hRecoJetPt->Write();
-
-    hMcJetPt->Write();
-    hMcRecoJetPt->Write();
-    hMcD0Pt->Write();
-    hMcRecoD0Pt->Write();
-    hMcJetZ->Write();
-    hRecoJetZ->Write();
-    hMcD0PtMcRecoD0Pt->Write();
-    hRecoJetPtMcJetPt->Write();
-    hRecoJetZMcJetZ->Write();*/
-   fout->cd();
-
-    // fout->Write();
     fout->Close();
-    
+
     delete infoList;
   }
-  
-
-  
 
   cout << "End of StHIOverlayAngularities::Finish" << endl;
   StMemStat::PrintMem("End of Finish...");
@@ -1051,29 +997,7 @@ Int_t StHIOverlayAngularities::Make()
   			: -999;
   			
   // ============================ end of CENTRALITY ============================== //
-
-
-//CHANGE
-/*
-  Bool_t isBadRun = false;  
-  if (AllBadRunList2014.count(fRunNumber)) {
-      isBadRun = true;
-
-  }
-  */
-  
-/*
-  Bool_t isBadRun = true;  
-  if (goodRun2014.count(fRunNumber)) {
-      isBadRun = false;
-
-  }
-  */
-  //if (isBadRun) return kStOK;  
-  
-  //2014 good run list
-  //if (AllBadRunList2014.count(fRunNumber)) return kStOK;
-  
+ 
   Bool_t isBadRun = true;
   
   //2014 good run list 
@@ -1378,30 +1302,23 @@ Int_t StHIOverlayAngularities::Make()
 
         if (McTrack_mIdVtxStart[iMcTrack] == vertexids[iD0]) continue;
 
- //Deleted (Check later!)
-        //if ((pt < fMinJetTrackPt) || (pt > fMaxJetTrackPt) ||  (phi < fJetTrackPhiMin) || (phi > fJetTrackPhiMax)) continue;
         if ((pt < fMinJetTrackPt) || (pt > fMaxJetTrackPt)) continue; //It doesn't make sense for true level?
          
         //eta cut only for non-D0 particles
         if (((eta < fJetTrackEtaMin) || (eta > fJetTrackEtaMax)) && (McTrack_mGePid[iMcTrack] != 37 && McTrack_mGePid[iMcTrack] != 38)) continue; 
        
-        /* 
-         cout << "Type of McTrack_mCharge: " << typeid(McTrack_mCharge[iMcTrack]).name() << endl;
-         cout << "McTrack_mCharge: " << McTrack_mCharge[iMcTrack] << endl;
-         cout << "McTrack_mCharge: " << static_cast<int>(McTrack_mCharge[iMcTrack]) << endl;
-*/
         //Charged tracks + D0
         if (McTrack_mCharge[iMcTrack] != 0 || McTrack_mGePid[iMcTrack] == 37 || McTrack_mGePid[iMcTrack] == 38){
         
           fMcEventTracks[counterEvent].push_back(particle); 
-          if (fPrintLevel == 2)
-            cout << "Track Constituents = " << McTrack_mGePid[iMcTrack] << "\t" << pt << "\t" << eta << "\t" << phi << endl;
+          if (fPrintLevel == 2) cout << "Track Constituents = " << McTrack_mGePid[iMcTrack] << "\t" << pt << "\t" << eta << "\t" << phi << endl;
+        
         }//Neutral particles
         else{
         
           fMcEventTowers[counterEvent].push_back(particle);
-          if (fPrintLevel == 2)
-            cout << "Towers = " << McTrack_mGePid[iMcTrack] << "\t" << pt << "\t" << eta << "\t" << phi << endl;
+          if (fPrintLevel == 2) cout << "Towers = " << McTrack_mGePid[iMcTrack] << "\t" << pt << "\t" << eta << "\t" << phi << endl;
+
         }
       
       } //End of loop over all mctracks
@@ -1409,15 +1326,12 @@ Int_t StHIOverlayAngularities::Make()
       //=========================================================================================//
       //=========================================================================================//
       
-      ////cerr << "MC" << " " << iD0 << endl;
       fjw->Clear();
       fjw->SetCentrality(fCentrality);
       fjw->SetCentralityW(fCentralityWeight);
       fjw->SetBackgroundSub(kFALSE);
       fjw->SetSubtractionMc(kTRUE);
-      fjw->SetMassiveTest(fMassiveAll);
-      fjw->SetAlpha1(fgAlpha1);
-      fjw->SetAlpha2(fgAlpha2);
+      fjw->SetICSSubtractionParams(fICSMaxDistances, fICSAlphas);
       fjw->SetEventPlane2(fPsi_2_shifted);
       fjw->SetPhiModulation(fPhiBgModulation);
       fjw->setJetNHardestSkipped(fJetNHardestSkipped_010, fJetNHardestSkipped_1080);
@@ -1469,7 +1383,7 @@ Int_t StHIOverlayAngularities::Make()
 
       // Make the jets here. If they are not what we want them to be, discard the whole event and keep going.
 
-      StJet *jetMc = DoesItHaveAGoodD0Jet(fMcEventTracks[counterEvent], 0);
+      StJet *jetMc = DoesItHaveAGoodD0Jet(fMcEventTracks[counterEvent], /*level*/ 0, /*method*/ 1);
       
 
       if (jetMc == NULL)
@@ -1482,7 +1396,6 @@ Int_t StHIOverlayAngularities::Make()
       
       jetMc->GetMomentumOfConst(hMcJetConstMom);
       jetMc->GetThetaOfConst(hMcJetConstTheta);
-      //jetMc->GetMomentumOfConst(hMcJetConstMom5GeV,5);
       fMcJet[counterEvent] = jetMc;
       
 
@@ -1492,16 +1405,13 @@ Int_t StHIOverlayAngularities::Make()
       fjw->Clear();
       fjw->SetBackgroundSub(kFALSE);
       fjw->SetSubtractionMc(kTRUE);
-      fjw->SetMassiveTest(fMassiveAll);
       fjw->SetCentrality(fCentrality);
       fjw->SetCentralityW(fCentralityWeight);
-      fjw->SetAlpha1(fgAlpha1);
-      fjw->SetAlpha2(fgAlpha2);
+      fjw->SetICSSubtractionParams(fICSMaxDistances, fICSAlphas);
       fjw->SetEventPlane2(fPsi_2_shifted);
       fjw->SetPhiModulation(fPhiBgModulation);
       fjw->setJetNHardestSkipped(fJetNHardestSkipped_010, fJetNHardestSkipped_1080);
       fjw->setJetFixedSeed(fSetJetFixedSeed, fJetFJSeed);
-      ////cerr << "Reco MC" << " " << iD0 << endl;
       if (fPrintLevel)
       {
         cout << "=================================RECO part=============================" << endl;
@@ -1525,12 +1435,7 @@ Int_t StHIOverlayAngularities::Make()
         	d0Factor = 3;
         	}
         fjw->AddInputVector(px, py, pz, energy, iTracks + 10000*d0Factor); //  10k-20k is Mc tracks range
-      
-        //hJetMcRecoTracksPt->Fill(v.Perp(),fCentralityWeight);
-        //hJetMcRecoTracksEtaPhi->Fill(v.Phi(), v.Eta(), fCentralityWeight);
-        //hJetMcTracksNHitsFit->Fill(trk->nHitsFit(), fCentralityWeight);
-	//hJetMcTracksNHitsRatio->Fill(1.0*trk->nHitsFit()/trk->nHitsMax(), fCentralityWeight);
-	//hJetMcTracksDCA->Fill(fabs(trk->gDCA(mVertex.x(),mVertex.y(),mVertex.z())), fCentralityWeight);
+    
       }                                                           // track loop
 
      if ((fJetType == kFullJet) || (fJetType == kNeutralJet))
@@ -1543,14 +1448,12 @@ Int_t StHIOverlayAngularities::Make()
         Double_t py = v.Y();
         Double_t pz = v.Z();
         Double_t p = v.P();
-        //Double_t energy = 1.0 * TMath::Sqrt(p * p + M_PION_PLUS * M_PION_PLUS);
-	Double_t energy = 1.0 * TMath::Sqrt(p * p + fMcNeutralPart*fMcNeutralPart);
+      	Double_t energy = 1.0 * TMath::Sqrt(p * p + fMcNeutralPart*fMcNeutralPart);
         fjw->AddInputVector(px, py, pz, energy, iTowers + 20000); //  //  20k-30k is Mc tower range
       }
       }                                                           // tower loop
 
-	////cerr << "jetMcreco" << endl;
-      StJet *jetMcReco = DoesItHaveAGoodD0Jet(fRecoMcEventTracks[counterEvent], 1);
+      StJet *jetMcReco = DoesItHaveAGoodD0Jet(fRecoMcEventTracks[counterEvent], /*level*/ 1, /*method*/ 1);
       fMcRecoJet[counterEvent] = jetMcReco;
 
       if (fPrintLevel == 2)
@@ -1609,19 +1512,6 @@ Int_t StHIOverlayAngularities::Make()
 
     if (fPrintLevel) cout << "Event Number  = " << iMcD0Event << endl;
 
-    fjw->Clear();
-    fjw->SetCentrality(fCentrality);
-    fjw->SetCentralityW(fCentralityWeight);
-    fjw->SetBackgroundSub(kTRUE);
-    fjw->SetSubtractionMc(kTRUE);
-    fjw->SetMassiveTest(fMassiveAll);
-    fjw->SetAlpha1(fgAlpha1);
-    fjw->SetAlpha2(fgAlpha2);
-    fjw->SetEventPlane2(fPsi_2_shifted);
-    fjw->SetPhiModulation(fPhiBgModulation);
-    fjw->setJetNHardestSkipped(fJetNHardestSkipped_010, fJetNHardestSkipped_1080);
-    fjw->setJetFixedSeed(fSetJetFixedSeed, fJetFJSeed);
-
     ////cerr << "Real data + embed " << " " << iMcD0Event << endl;
    	
     // loop over ALL tracks in PicoDst and add to jet, after acceptance and quality cuts
@@ -1639,7 +1529,6 @@ Int_t StHIOverlayAngularities::Make()
 
         // get momentum vector of track - global or primary track
         TVector3 mTrkMom;
-        //cout << "doUsePrimTracks: " << doUsePrimTracks << endl;
         if (doUsePrimTracks)
         {
           // get primary track vector
@@ -1663,7 +1552,7 @@ Int_t StHIOverlayAngularities::Make()
         hJetTracksDedxAfterCuts->Fill(trk->gPtot()*trk->charge(),trk->dEdx(),fCentralityWeight);
         
         //cout << "input_particles.push_back({"<<px<<","<<py<<","<<pz<<","<<energy<<"}); //charged" << endl;
-        fjw->AddInputVector(px, py, pz, energy, iTrack); // includes E
+        //fjw->AddInputVector(px, py, pz, energy, iTrack); // includes E
  
         fastjet::PseudoJet particle_Track(px, py, pz, energy);
         
@@ -1675,18 +1564,15 @@ Int_t StHIOverlayAngularities::Make()
         hJetTracksPt->Fill(particle_Track.perp(),fCentralityWeight);
         hJetTracksEtaPhi->Fill(particle_Track.phi_std(), particle_Track.eta(), fCentralityWeight);
         hJetTracksNHitsFit->Fill(trk->nHitsFit(), fCentralityWeight);
-	hJetTracksNHitsRatio->Fill(1.0*trk->nHitsFit()/trk->nHitsMax(), fCentralityWeight);
-	hJetTracksDCA->Fill(fabs(trk->gDCA(mVertex.x(),mVertex.y(),mVertex.z())), fCentralityWeight);
-	hJetConstCharge->Fill(trk->charge(), fCentralityWeight);
-	hJetConstRapPhi->Fill(particle_Track.phi_std(),particle_Track.rap(), fCentralityWeight);
-	hJetConstEtaPhi->Fill(particle_Track.phi_std(),particle_Track.eta(), fCentralityWeight);
-	hJetConstPt->Fill(particle_Track.perp(),fCentralityWeight);
+        hJetTracksNHitsRatio->Fill(1.0*trk->nHitsFit()/trk->nHitsMax(), fCentralityWeight);
+        hJetTracksDCA->Fill(fabs(trk->gDCA(mVertex.x(),mVertex.y(),mVertex.z())), fCentralityWeight);
+        hJetConstCharge->Fill(trk->charge(), fCentralityWeight);
+        hJetConstRapPhi->Fill(particle_Track.phi_std(),particle_Track.rap(), fCentralityWeight);
+        hJetConstEtaPhi->Fill(particle_Track.phi_std(),particle_Track.eta(), fCentralityWeight);
+        hJetConstPt->Fill(particle_Track.perp(),fCentralityWeight);
 
         }// end of DCA < 3
         
-        //Old
-        //Int_t matchedTowerIndex = abs(GetMatchedBtowID(trk)) - 1; // towerIndex = towerID - 1
-
         Int_t matchedTowerIndex = trk->bemcTowerIndex(); //returns ID
 
         if (matchedTowerIndex < 0) continue;
@@ -1697,9 +1583,6 @@ Int_t StHIOverlayAngularities::Make()
         else dca_z = trk->gDCA(mVertex.x(),mVertex.y(),mVertex.z());
         
         if (fabs(dca_z) > fDcaZHadronCorr) continue;
-        
-        ////if(abs(trk->gDCA(mVertex).z()) > fHadrCorrTrackDCAZcut) continue;
-        ////if(fabs(trk->gDCA(mVertex.x(),mVertex.y(),mVertex.z())) > fJetTrackDCAcut) continue;
         
         mTowerMatchTrkIndex[matchedTowerIndex][mTowerStatusArr[matchedTowerIndex]] = iTrack;
         mTowerStatusArr[matchedTowerIndex] = mTowerStatusArr[matchedTowerIndex] + 1; // 1+ means match, 0 for no match
@@ -1758,14 +1641,12 @@ Int_t StHIOverlayAngularities::Make()
         Double_t towEUncorr = tower->energy(); //energy w/o calibration
 	Double_t towerEunCorr = towE; // uncorrected energy
         Double_t towerE = towE;       // corrected energy (hadronically - done below)
-       // Double_t towEtunCorr = towerEunCorr / (1.0 * TMath::CosH(towerEta));
 
         // cut on min tower energy after filling histos
         if (towerEunCorr < mTowerEnergyTMin) continue; // if we don't have enough E to start with, why mess around
 
         if (towerEunCorr > fMaxTowerEtBeforeHC) fMaxTowerEtBeforeHC = towerEunCorr;
 
-	//cout << "A: " << mTowerEnergyTMin << " " << fMaxTowerEtBeforeHC << endl;
 
         // =======================================================================
         // HADRONIC CORRECTION
@@ -1848,9 +1729,7 @@ Int_t StHIOverlayAngularities::Make()
         // else - no match so treat towers on their own. Must meet constituent cut
 
         // Et - correction comparison
-        //Double_t fMaxEt = (maxEt == 0) ? towerEunCorr / (1.0 * TMath::CosH(towerEta)) : maxEt;
         Double_t fSumEt = (sumEt == 0) ? towerEunCorr / (1.0 * TMath::CosH(towerEta)) : sumEt;
-        // if(mTowerStatusArr[towerIndex] > 0.5) cout<<"towerEunCorr = "<<towerEunCorr<<"  CosH: "<<1.0*TMath::CosH(towerEta)<<"   fMaxEt: "<<fMaxEt<<"   fSumEt: "<<fSumEt<<endl;
 
         // cut on transverse tower energy (more uniform)
         Double_t towerEt = 0.0;
@@ -1883,7 +1762,7 @@ Int_t StHIOverlayAngularities::Make()
         // add towers to fastjet - shift tower index (tracks 0+, ghosts = -1, towers < -1)
         Int_t uidTow = -(itow + 2);
 
-        fjw->AddInputVector(towerPx, towerPy, towerPz, towerE, uidTow); // includes E
+        //fjw->AddInputVector(towerPx, towerPy, towerPz, towerE, uidTow); // includes E
         ////cout << "input_particles.push_back({"<<towerPx<<","<<towerPy<<","<<towerPz<<","<<towerE<<"}); //neutral" << endl;
         fastjet::PseudoJet particle_Track(towerPx, towerPy, towerPz, towerE);
         particle_Track.set_user_index(uidTow);
@@ -1923,12 +1802,12 @@ Int_t StHIOverlayAngularities::Make()
 
 
       // MC Tracks will start from 10000
-      fjw->AddInputVector(px, py, pz, energy, iMcTrack + 10000*d0Factor); // includes E
+      //fjw->AddInputVector(px, py, pz, energy, iMcTrack + 10000*d0Factor); // includes E
       
       fastjet::PseudoJet particle_Track(px, py, pz, energy);
       particle_Track.set_user_index(iMcTrack + 10000*d0Factor);
-      ////if ((int)v.M() == 1) cout << "input_particles.push_back("<<px<<","<<py<<","<<pz<<","<<energy <<"); //D0 " << iMcTrack+10000 << endl;
-      ////else cout << "input_particles.push_back("<<px<<","<<py<<","<<pz<<","<<energy <<"); //Charged " << iMcTrack+10000 << endl;
+      fFull_Event.push_back(particle_Track);
+
       
     } 
 
@@ -1945,40 +1824,61 @@ Int_t StHIOverlayAngularities::Make()
         Double_t p = v.P();
         Double_t energy = 1.0 * TMath::Sqrt(p * p + fMcNeutralPart*fMcNeutralPart); // Towers, gammas
         // MC Towers will start from
-        fjw->AddInputVector(px, py, pz, energy, -1 * iTowers - 10000); // includes E
+        //fjw->AddInputVector(px, py, pz, energy, -1 * iTowers - 10000); // includes E
         fastjet::PseudoJet particle_Track(px, py, pz, energy);
         particle_Track.set_user_index(-1 * iTowers - 10000);
+        fFull_Event.push_back(particle_Track);
+
 
       } // tower loop
 
     } // if full/charged jets
 
-int NiterA[4] = {4,3,2,2};
-double R_max1A[4] = {0.05,0.125,0.100,0.150};
-double R_max2A[4] = {0.005,0.005,0.175,0.100};
+    StJet *jetReco = NULL;
+    StJet *ICS_jetReco = NULL;
 
-int i_1 = 2;
 
-		fjw->SetNIter(NiterA[i_1]);
-		fjw->SetCentrality(fCentrality);
-		fjw->SetCentralityW(fCentralityWeight);
-   		fjw->SetBackgroundSub(kTRUE);
-   	        fjw->SetSubtractionMc(kTRUE);
-   		fjw->SetMassiveTest(fMassiveAll);
-   		fjw->SetEventPlane2(fPsi_2_shifted);
-   		fjw->SetPhiModulation(fPhiBgModulation);
-		fjw->SetAlpha1(fgAlpha1);
-		fjw->SetAlpha2(fgAlpha2);
-		fjw->SetRMax1(R_max1A[i_1]);
-		fjw->SetRMax2(R_max2A[i_1]);
-		fjw->setJetNHardestSkipped(fJetNHardestSkipped_010, fJetNHardestSkipped_1080);	
-		fjw->setJetFixedSeed(fSetJetFixedSeed, fJetFJSeed);
-	        
-	       /// cerr << "jetreco" << endl;
-    StJet *jetReco = DoesItHaveAGoodD0Jet(fRecoMcEventTracks[iMcD0Event], 2); // run fjw and get the jets
+
+    if(fBgSubtraction == 1 || fBgSubtraction == 12 || fBgSubtraction == 21){
+      fjw->Clear();
+      fjw->AddInputVectors(fFull_Event);
+      fjw->SetCentrality(fCentrality);
+      fjw->SetCentralityW(fCentralityWeight);
+      fjw->SetBackgroundSub(kTRUE);
+      fjw->SetSubtractionMc(kTRUE);
+      fjw->SetEventPlane2(fPsi_2_shifted);
+      fjw->SetPhiModulation(fPhiBgModulation);
+      fjw->SetICSSubtractionParams(fICSMaxDistances, fICSAlphas);
+      fjw->setJetNHardestSkipped(fJetNHardestSkipped_010, fJetNHardestSkipped_1080);	
+      fjw->setJetFixedSeed(fSetJetFixedSeed, fJetFJSeed);
+
+      jetReco = DoesItHaveAGoodD0Jet(fRecoMcEventTracks[iMcD0Event], /*level*/ 2, /*method*/ 1); // run fjw and get the jets
+
+    }
+    fRecoJet[iMcD0Event] = jetReco;      
+
+    if(fBgSubtraction == 2 || fBgSubtraction == 12 || fBgSubtraction == 21){
+      fjw->Clear();
+      fjw->AddInputVectors(fFull_Event);
+      fjw->SetCentrality(fCentrality);
+      fjw->SetCentralityW(fCentralityWeight);
+      fjw->SetBackgroundSub(kTRUE);
+      fjw->SetSubtractionMc(kTRUE);
+      fjw->SetEventPlane2(fPsi_2_shifted);
+      fjw->SetPhiModulation(fPhiBgModulation);
+      fjw->SetICSSubtractionParams(fICSMaxDistances, fICSAlphas);
+      fjw->setJetNHardestSkipped(fJetNHardestSkipped_010, fJetNHardestSkipped_1080);	
+      fjw->setJetFixedSeed(fSetJetFixedSeed, fJetFJSeed);
+
+      ICS_jetReco = DoesItHaveAGoodD0Jet(fRecoMcEventTracks[iMcD0Event], /*level*/ 2, /*method*/ 2); // run fjw and get the jets
+    } 
+    
+    fICS_RecoJet[iMcD0Event] = ICS_jetReco;
 
     
-    fRecoJet[iMcD0Event] = jetReco;
+
+    
+ 
     
 
   } // loop over D0 from MC
@@ -2601,31 +2501,26 @@ Bool_t StHIOverlayAngularities::KeepTrack(const Int_t &particleid, const Int_t &
 }
 
 
-StJet *StHIOverlayAngularities::DoesItHaveAGoodD0Jet(vector<TLorentzVector> &eventTracks, Int_t recoLevel){
+StJet *StHIOverlayAngularities::DoesItHaveAGoodD0Jet(vector<TLorentzVector> &eventTracks, Int_t recoLevel, Int_t bgSubtraction)
+{
 //recolevel: 0 = mc; 1 = mcSmeared; 2 = reco (sim + real event) 
 //Check, if the D0-jet is presented
 
-
-	// 0 - Area based, 1 - ICS, 2 - jet shape
-	switch (fBgSubtraction) {
-	    case 0:
-		fjw->Run_AreaBase();
+	// 1 - Area based + jet shape, 2 - ICS
+	switch (bgSubtraction) {
+	  
+    case 1:
+		fjw->runAreaBgAndAreaShapeMethod();
 		break;
 
-	    case 1:
-		fjw->Run();
+	  case 2:
+		fjw->runICSMethod();
 		break;
 
-	    case 2:
-		fjw->Run_Shape();
-		break;
-
-	    default:
+	  default:
 		std::cerr << "Warning: Unknown fBgSubtraction option " << fBgSubtraction << std::endl;
 		exit(1); // 1 bývá běžnější pro chybu
 	}
-
-  //Run the jet
  
   
   //Get all jets
@@ -3083,24 +2978,48 @@ void StHIOverlayAngularities::OutputTreeInit()
   outputTree->Branch("mcSmearedJetMomDisp", &fMcRecoJetTree.dispersion, "mcSmearedJetMomDisp/F");
   outputTree->Branch("mcSmearedJetD0Z", &fMcRecoJetTree.d0z, "d0z/F");
   outputTree->Branch("mcSmearedJetD0DeltaR", &fMcRecoJetTree.d0DeltaR, "mcJetSmearedD0DeltaR/F");
-  outputTree->Branch("recoJetPt", &fRecoJetTree.jetpt, "jetpt/F");
-  if (fBgSubtraction == 0 || fBgSubtraction == 2) outputTree->Branch("recoJetPtCorr", &fRecoJetTree.jetptcorr, "jetptcorr/F");
-  outputTree->Branch("recoJetRho", &fRecoJetTree.jetrho, "jetrho/F");
-  outputTree->Branch("recoJetRhoM", &fRecoJetTree.jetrhom, "jetrhom/F");
-  outputTree->Branch("recoJetEta", &fRecoJetTree.jeteta, "jeteta/F");
-  outputTree->Branch("recoJetPhi", &fRecoJetTree.jetphi, "jetphi/F");
-  outputTree->Branch("recoJetArea", &fRecoJetTree.jetarea, "jetarea/F");
-  outputTree->Branch("recoJetE", &fRecoJetTree.jetenergy, "jetenergy/F");
-  //outputTree->Branch("recoJetRhoVal", &fRecoJetTree.fRhoValforjet, "fRhoValforjet/F");
-  outputTree->Branch("recoJetNConst", &fRecoJetTree.numberofconstituents, "numberofconstituents/I");
-  outputTree->Branch("recoJetLambda1_0_5", &fRecoJetTree.lambda_1_half, "lambda_1_half/F");
-  outputTree->Branch("recoJetLambda1_1", &fRecoJetTree.lambda_1_1, "recoJetLambda1_1/F");
-  outputTree->Branch("recoJetLambda1_1_5", &fRecoJetTree.lambda_1_1half, "recoJetLambda1_1_5/F");
-  outputTree->Branch("recoJetLambda1_2", &fRecoJetTree.lambda_1_2, "recoJetLambda1_2/F");
-  outputTree->Branch("recoJetLambda1_3", &fRecoJetTree.lambda_1_3, "recoJetLambda1_3/F");
-  outputTree->Branch("recoJetMomDisp", &fRecoJetTree.dispersion, "recoJetMomDisp/F");
-  outputTree->Branch("recoJetD0Z", &fRecoJetTree.d0z, "recoJetD0Z/F");
-  outputTree->Branch("recoJetD0DeltaR", &fRecoJetTree.d0DeltaR, "recoJetD0DeltaR/F");
+
+  if (fBgSubtraction == 1 || fBgSubtraction == 12 || fBgSubtraction == 21){
+    outputTree->Branch("recoJetPt", &fRecoJetTree.jetpt, "jetpt/F");
+    outputTree->Branch("recoJetPtCorr", &fRecoJetTree.jetptcorr, "jetptcorr/F");
+    outputTree->Branch("recoJetRho", &fRecoJetTree.jetrho, "jetrho/F");
+    outputTree->Branch("recoJetRhoM", &fRecoJetTree.jetrhom, "jetrhom/F");
+    outputTree->Branch("recoJetEta", &fRecoJetTree.jeteta, "jeteta/F");
+    outputTree->Branch("recoJetPhi", &fRecoJetTree.jetphi, "jetphi/F");
+    outputTree->Branch("recoJetArea", &fRecoJetTree.jetarea, "jetarea/F");
+    outputTree->Branch("recoJetE", &fRecoJetTree.jetenergy, "jetenergy/F");
+    outputTree->Branch("recoJetNConst", &fRecoJetTree.numberofconstituents, "numberofconstituents/I");
+    outputTree->Branch("recoJetLambda1_0_5", &fRecoJetTree.lambda_1_half, "lambda_1_half/F");
+    outputTree->Branch("recoJetLambda1_1", &fRecoJetTree.lambda_1_1, "recoJetLambda1_1/F");
+    outputTree->Branch("recoJetLambda1_1_5", &fRecoJetTree.lambda_1_1half, "recoJetLambda1_1_5/F");
+    outputTree->Branch("recoJetLambda1_2", &fRecoJetTree.lambda_1_2, "recoJetLambda1_2/F");
+    outputTree->Branch("recoJetLambda1_3", &fRecoJetTree.lambda_1_3, "recoJetLambda1_3/F");
+    outputTree->Branch("recoJetMomDisp", &fRecoJetTree.dispersion, "recoJetMomDisp/F");
+    outputTree->Branch("recoJetD0Z", &fRecoJetTree.d0z, "recoJetD0Z/F");
+    outputTree->Branch("recoJetD0DeltaR", &fRecoJetTree.d0DeltaR, "recoJetD0DeltaR/F");
+  }
+
+  if (fBgSubtraction == 2 || fBgSubtraction == 12 || fBgSubtraction == 21){
+
+    outputTree->Branch("ICS_recoJetPt", &fICS_RecoJetTree.jetpt, "ICS_jetpt/F");
+    outputTree->Branch("ICS_recoJetRho", &fICS_RecoJetTree.jetrho, "ICS_jetrho/F");
+    outputTree->Branch("ICS_recoJetRhoM", &fICS_RecoJetTree.jetrhom, "ICS_jetrhom/F");
+    outputTree->Branch("ICS_recoJetEta", &fICS_RecoJetTree.jeteta, "ICS_jeteta/F");
+    outputTree->Branch("ICS_recoJetPhi", &fICS_RecoJetTree.jetphi, "ICS_jetphi/F");
+    outputTree->Branch("ICS_recoJetArea", &fICS_RecoJetTree.jetarea, "ICS_jetarea/F");
+    outputTree->Branch("ICS_recoJetE", &fICS_RecoJetTree.jetenergy, "ICS_jetenergy/F");
+    outputTree->Branch("ICS_recoJetNConst", &fICS_RecoJetTree.numberofconstituents, "ICS_numberofconstituents/I");
+    outputTree->Branch("ICS_recoJetLambda1_0_5", &fICS_RecoJetTree.lambda_1_half, "ICS_lambda_1_half/F");
+    outputTree->Branch("ICS_recoJetLambda1_1", &fICS_RecoJetTree.lambda_1_1, "ICS_recoJetLambda1_1/F");
+    outputTree->Branch("ICS_recoJetLambda1_1_5", &fICS_RecoJetTree.lambda_1_1half, "ICS_recoJetLambda1_1_5/F");
+    outputTree->Branch("ICS_recoJetLambda1_2", &fICS_RecoJetTree.lambda_1_2, "ICS_recoJetLambda1_2/F");
+    outputTree->Branch("ICS_recoJetLambda1_3", &fICS_RecoJetTree.lambda_1_3, "ICS_recoJetLambda1_3/F");
+    outputTree->Branch("ICS_recoJetMomDisp", &fICS_RecoJetTree.dispersion, "ICS_recoJetMomDisp/F");
+    outputTree->Branch("ICS_recoJetD0Z", &fICS_RecoJetTree.d0z, "ICS_recoJetD0Z/F");
+    outputTree->Branch("ICS_recoJetD0DeltaR", &fICS_RecoJetTree.d0DeltaR, "ICS_recoJetD0DeltaR/F");
+
+  }
+  
   
 }
 
@@ -3112,8 +3031,11 @@ void StHIOverlayAngularities::FillTree(const Int_t &numberOfD0Events)
 
   for (Int_t iMcD0Event = 0; iMcD0Event < numberOfD0Events; iMcD0Event++)
   {
+
     fMcJetTree.Clear();
     fRecoJetTree.Clear();
+    fICS_RecoJetTree.Clear();
+
     fMcRecoJetTree.Clear();
 
     fRecoJetTree.centrality = fCentrality;
@@ -3161,103 +3083,68 @@ void StHIOverlayAngularities::FillTree(const Int_t &numberOfD0Events)
     fRecoJetTree.kaonphi = standardPhi(recoKaon.Phi());
     fRecoJetTree.grefmult = fKgrefMult_uncorr;
     
-    /*
-    fRecoJetTree.Q1_vec = fQ_1;
-    fRecoJetTree.Q2_vec = fQ_2;
-    fRecoJetTree.Q1_vec_rec = fQ_1_rec;
-    fRecoJetTree.Q2_vec_rec = fQ_2_rec;
-    fRecoJetTree.Psi2 = fPsi_2;
-    fRecoJetTree.corrPsi2 = fPsi_2_shifted;
-    */
-    
     StJet *jetMc = fMcJet[iMcD0Event];
     StJet *jetMcReco = fMcRecoJet[iMcD0Event];
     StJet *jetReco = fRecoJet[iMcD0Event];
+    StJet *ICS_jetReco = fICS_RecoJet[iMcD0Event];
 
 
     //Pure MC
     ///cout << "STAGE I" << endl;
     FillJet(jetMc, fMcJetTree, mcD0);
+    delete jetMc;
     
     //Smeared MC
     ///cout << "STAGE II" << endl;
     if (fMcRecoJet[iMcD0Event] != NULL) FillJet(jetMcReco, fMcRecoJetTree, recoD0);
+    delete jetMcReco;
     
     //Embedded MC
     ///cout << "STAGE III" << endl;
+    //----Area-based background subtraction----
     if (fRecoJet[iMcD0Event] != NULL){
     
-      fRecoJetTree.fRhoValforjet = fRhoVal;
-            //aditional ones (outside because I want it only for reco)
       fRecoJetTree.jetrho = jetReco->GetJetRho();
       fRecoJetTree.jetrhom = jetReco->GetJetRhoM();
       
       Double_t zD0Corr = -999;
       Double_t pt_corr = -999;
-      Double_t jetPt = -999;
-      Double_t lam_1_0half = -999;
-      Double_t lam_1_1 = -999;
-      Double_t lam_1_1half = -999;
-      Double_t lam_1_2 = -999;      
-      Double_t lam_1_3 = -999; 
-      Double_t momDisp = -999;           
-            
-      if (fBgSubtraction == 0 || fBgSubtraction == 2){ 
-      
-		pt_corr = jetReco->Pt() - jetReco->GetJetRho() * jetReco->Area();
-		///pt_corr = jetReco->Pt() - jetReco->GetJetRho() * jetReco->GetArea4Vector().pt();
-	
-		jetPt = jetReco->Pt();
-      		Double_t px_corr = jetReco->Px() - jetReco->GetJetRho() * jetReco->GetArea4Vector().px();
-            	Double_t py_corr = jetReco->Py() - jetReco->GetJetRho() * jetReco->GetArea4Vector().py();
-            	zD0Corr = (px_corr*recoD0.X() + py_corr*recoD0.Y()) / (pt_corr * pt_corr);
-            	
-            	
-            	/*
-		zD0Corr = (pt_corr*recoD0.X()*TMath::Cos(jetReco->Phi())+pt_corr*recoD0.Y()*TMath::Sin(jetReco->Phi()))
-		/ (pt_corr * pt_corr);*/
-            	
-            	fRecoJetTree.jetptcorr = pt_corr;
-            	
-            	
-            	if(fBgSubtraction == 2){
-		    	lam_1_0half = jetReco->GetActualShapeL10half();
-	      		lam_1_1 = jetReco->GetActualShapeL11();
-	      		lam_1_1half = jetReco->GetActualShapeL11half();
-	      		lam_1_2 = jetReco->GetActualShapeL12();     
-	      		lam_1_3 = jetReco->GetActualShapeL13(); 
-	      		momDisp = jetReco->GetActualShapeDisp();
-      		}
-       
-      }
+ 
+      pt_corr = jetReco->Pt() - jetReco->GetJetRho() * jetReco->Area();
+      //jetReco->Pt() - jetReco->GetJetRho() * jetReco->GetArea4Vector().pt(); //the same
+  
+      Double_t px_corr = jetReco->Px() - jetReco->GetJetRho() * jetReco->GetArea4Vector().px();
+      Double_t py_corr = jetReco->Py() - jetReco->GetJetRho() * jetReco->GetArea4Vector().py();
+       	
+      fRecoJetTree.jetptcorr = pt_corr;
+
       FillJet(jetReco, fRecoJetTree, recoD0);
-     // cout << "Jet pT corr: " << pt_corr << endl;
       
-      //In case of area based background subtraction, the observables have to be calculated differently
-      if (fBgSubtraction == 0) {
-      
-      	fRecoJetTree.d0z = zD0Corr;
-        fRecoJetTree.lambda_1_half 	*= 1.*jetPt / pt_corr;
- 	fRecoJetTree.lambda_1_1 	*= 1.*jetPt / pt_corr;
-  	fRecoJetTree.lambda_1_1half     *= 1.*jetPt / pt_corr;
-  	fRecoJetTree.lambda_1_2         *= 1.*jetPt / pt_corr;
-  	fRecoJetTree.lambda_1_3         *= 1.*jetPt / pt_corr;
-  	fRecoJetTree.dispersion         *= 1.*jetPt*jetPt / pt_corr / pt_corr;
-  	
-      
-      } else if (fBgSubtraction == 2){
+      zD0Corr = (px_corr*recoD0.X() + py_corr*recoD0.Y()) / (pt_corr * pt_corr);    	
+      //Neil calculation
+		  //zD0Corr = (pt_corr*recoD0.X()*TMath::Cos(jetReco->Phi())+pt_corr*recoD0.Y()*TMath::Sin(jetReco->Phi())) / (pt_corr * pt_corr);
+      fRecoJetTree.d0z = zD0Corr;      
+      fRecoJetTree.lambda_1_half 	    = jetReco->GetActualShapeL10half();
+ 	    fRecoJetTree.lambda_1_1 	      = jetReco->GetActualShapeL11();
+  	  fRecoJetTree.lambda_1_1half     = jetReco->GetActualShapeL11half();
+  	  fRecoJetTree.lambda_1_2         = jetReco->GetActualShapeL12();  
+  	  fRecoJetTree.lambda_1_3         = jetReco->GetActualShapeL13(); 
+  	  fRecoJetTree.dispersion         = jetReco->GetActualShapeDisp();
 
-        fRecoJetTree.d0z = zD0Corr;
-        fRecoJetTree.lambda_1_half 	= lam_1_0half;
- 	fRecoJetTree.lambda_1_1 	= lam_1_1;
-  	fRecoJetTree.lambda_1_1half     = lam_1_1half;
-  	fRecoJetTree.lambda_1_2         = lam_1_2;
-  	fRecoJetTree.lambda_1_3         = lam_1_3;
-  	fRecoJetTree.dispersion         = momDisp;
-      
-      }
-
+      delete jetReco;
     
+    }
+
+    //------ICS background subtraction------
+    if (fICS_RecoJet[iMcD0Event]  != NULL){
+
+      fICS_RecoJetTree.jetrho = ICS_jetReco->GetJetRho();
+      fICS_RecoJetTree.jetrhom = ICS_jetReco->GetJetRhoM();
+      
+      FillJet(ICS_jetReco, fICS_RecoJetTree, recoD0);
+
+      delete ICS_jetReco;
+
     }
     
 
@@ -3266,7 +3153,7 @@ void StHIOverlayAngularities::FillTree(const Int_t &numberOfD0Events)
 
     if (fRecoJetTree.numberofconstituents > 0){
 
-           hResponseJetPt->Fill(fRecoJetTree.jetpt, fMcJetTree.jetpt, fCentralityWeight);
+      hResponseJetPt->Fill(fRecoJetTree.jetpt, fMcJetTree.jetpt, fCentralityWeight);
 	   hResponseJetD0Z->Fill(fRecoJetTree.d0z, fMcJetTree.d0z,fCentralityWeight);
 	   hResponseJetNConst->Fill(fRecoJetTree.numberofconstituents, fMcJetTree.numberofconstituents,fCentralityWeight);
 	   hResponseJetLambda1_0_5->Fill(fRecoJetTree.lambda_1_half, fMcJetTree.lambda_1_half,fCentralityWeight);
@@ -3373,19 +3260,10 @@ void StHIOverlayAngularities::FillJet(StJet *jet, StJetTreeStruct &jetTree, cons
   jetTree.d0DeltaR = sqrt(pow(D0.Eta()-jet->Eta(),2)+pow(TVector2::Phi_mpi_pi(D0.Phi() - jet->Phi()) ,2));
   jetTree.jetpt = jet->Pt();
   jetTree.jeteta = jet->Eta();
-  /*
-  cout << "Jet pT = " << jet->Pt() << endl;
-  cout << "Jet eta = " << jet->Eta() << endl;
-  cout << "D0 pT = " << D0.Perp() << endl;
-  cout << "D0 Eta = " << D0.Eta() << endl;
-  cout << "rho = " << fjw->GetJetRho() << endl;
-  cout << "area = " << jet->Area() << endl; 
-  */
   jetTree.jetphi = jet->Phi();
   jetTree.jetarea = jet->Area();
   jetTree.jetenergy = jet->E();
   jetTree.numberofconstituents = jet->GenNumberOfCons(false, false); //false = ignore ghost particles and particles with pT < 0.00001
-   //   cout << "NOC = " << jet->GenNumberOfCons(false, false) << endl;
   jetTree.lambda_1_half = jet->GetAngularityLambda(1., 0.5, 0.4);
   jetTree.lambda_1_1 = jet->GetAngularityLambda(1., 1., 0.4);
   jetTree.lambda_1_1half = jet->GetAngularityLambda(1., 1.5, 0.4);
@@ -3398,5 +3276,5 @@ void StHIOverlayAngularities::FillJet(StJet *jet, StJetTreeStruct &jetTree, cons
 
   
   
-  delete jet;
+  //delete jet;
 }
