@@ -20,3 +20,4 @@ LocalLibraries.zip
 *.py
 *.tmp
 *LowMid*.list
+.sl73_*

@@ -1,1 +1,0 @@
-../../../../StRoot/StPicoD0JetAnaMaker/StFJAngularityDefinition.h
