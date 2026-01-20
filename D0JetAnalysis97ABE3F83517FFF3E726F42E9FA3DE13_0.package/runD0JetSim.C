@@ -1,1 +1,0 @@
-StRoot/macros/runD0JetSim.C
