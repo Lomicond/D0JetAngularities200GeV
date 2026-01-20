@@ -18,7 +18,10 @@ if ( "$yn" == "y" ) then
 	rm ./LocalLibraries.zip	
 	rm sched*.dataset
 	rm sched*.session.xml
-	rm -r sched*.package
+	rm *dataset.tmp
+	rm D0JetAnalysis*.dataset
+	rm D0JetAnalysis*.session.xml
+	rm -r D0JetAnalysis*.package
 	rm -r LocalLibraries.package
 	echo "It is cleaned up."
 else

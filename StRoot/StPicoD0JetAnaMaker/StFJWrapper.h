@@ -79,7 +79,6 @@ public:
     return _scale * _bge->rho(jet);
   }
 
-  // pokud chceš (doporučuju), přepošli i sigma/rho_m, když jsou podporované
   double sigma() const override {
     return _scale * _bge->sigma();
   }
@@ -383,22 +382,33 @@ fastjet::JetMedianBackgroundEstimator StFJWrapper::CreateBackgroundEstimator() {
     fj::JetMedianBackgroundEstimator bkgd_estimator(selector, jet_def_bkgd, area_def_bkgd);
     return bkgd_estimator;
 }
-//_________________________________________________________________________________________________
-Double_t StFJWrapper::ComputeOccupancyC_fromJetsUsed(const fastjet::JetMedianBackgroundEstimator& bge) {
-  const Double_t etaMax  = 0.6;
-  const Double_t A_range = (2.0*etaMax) * (2.0*TMath::Pi());
-  if (A_range <= 0) return 1.0;
 
-  Double_t A_occ = 0.0;
-  const std::vector<fastjet::PseudoJet> ju = bge.jets_used();
+//_________________________________________________________________________________________________
+Double_t StFJWrapper::ComputeOccupancyC_fromJetsUsed(const fastjet::JetMedianBackgroundEstimator& bge)
+{
+  const auto& ju = bge.jets_used();
+
+  Double_t A_tot  = 0.0;
+  Double_t A_phys = 0.0;
+
   for (const auto& j : ju) {
-    if (j.perp() > 0) A_occ += j.area();
+    const Double_t Aj = j.area();
+    if (Aj <= 0) continue;
+
+    A_tot += Aj;
+
+    if (!j.is_pure_ghost()) A_phys += Aj;
   }
 
-  Double_t C = A_occ / A_range;
+  if (A_tot <= 0) return 1.0;
+
+  Double_t C = A_phys / A_tot;
   if (C < 0) C = 0;
   if (C > 1) C = 1;
+  
+  ////if (fBackSub) cerr << "cent: " << fCentrality << " Occupancy C: A_phys = " << A_phys << ", A_tot = " << A_tot << ", C = " << C << endl;
   return C;
+
 }
 
 //_________________________________________________________________________________________________
@@ -697,8 +707,8 @@ Int_t StFJWrapper::runICSMethod() {
 	// Set particles for background estimator (background estimation for the input particles)
 	bkgd_estimator.set_particles(inputRealOnly); //MC cant be included
 
-  double C = ComputeOccupancyC_fromJetsUsed(bkgd_estimator);
-  C = 1.0; // Temporarily disable occupancy correction
+  double C = 1;
+  if (fCentrality < 4) C = ComputeOccupancyC_fromJetsUsed(bkgd_estimator);
   ScaledBGE scaled(&bkgd_estimator, C);
 
   //--- Event wide ICS background subtraction ---
@@ -816,8 +826,8 @@ Int_t StFJWrapper::runAreaBgAndAreaShapeMethod(){
   fJetRhoM = 0;
 
 	if (fBackSub){
-    C = ComputeOccupancyC_fromJetsUsed(bkgd_estimator);//
     C = 1.0; // Temporarily disable occupancy correction
+    if (fCentrality < 4) C = ComputeOccupancyC_fromJetsUsed(bkgd_estimator);
 	  fJetRho = C*bkgd_estimator.rho();
 	  fJetRhoM = C*bkgd_estimator.rho_m(); 
     //cout << Form("StFJWrapper::runAreaBgAndAreaShapeMethod: Rho = %.2f, RhoM = %.2f, C = %.2f", fJetRho, fJetRhoM, C) << endl;

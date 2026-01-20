@@ -175,7 +175,7 @@ void runD0JetSim(const Char_t *inputFile = "",
 
    //Strategy for jet background subtraction
    HIOverlayMaker->SetBgSubtraction(12); //1 - Area based method + jet shape method // 2 - ICS // 12 or 21 - both
-   HIOverlayMaker->setJetNHardestSkipped(2, 1); // First: 0-10%; Second: 10-80%
+   HIOverlayMaker->setJetNHardestSkipped(2, 2); // First: 0-10%; Second: 10-80% //CHANGE
    HIOverlayMaker->SetPhiBgModulation(false);
    
    //Fastjet

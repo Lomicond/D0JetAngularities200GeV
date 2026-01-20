@@ -1,4 +1,4 @@
-<job minFilesPerProcess="20" maxFilesPerProcess="30" simulateSubmission="false" fileListSyntax="xrootd" >
+<job name="D0JetAnalysis" minFilesPerProcess="20" maxFilesPerProcess="30" simulateSubmission="false" fileListSyntax="xrootd" >
 	
 <!--<input URL="catalog:star.bnl.gov?production=P16ij,trgsetupname=AuAu_200_production_2016,filename~st_physics,filetype=daq_reco_picoDst,library=SL20c,runnumber[]17062049-17179012,storage!=hpss" preferStorage="local" singleCopy="true" nFiles="5000" /> -->
 <!-- <input URL="filelist:/gpfs01/star/pwg/lomicond/Ondrej/Jets/Simulation_D0_Jets_cleared/lists/Run2014_lowmid_s2.txt" nFiles="2500" /> -->
