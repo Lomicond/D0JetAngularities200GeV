@@ -25,6 +25,9 @@ public:
     std::vector<fastjet::PseudoJet> constituents = jet.constituents();
     
     for (size_t i = 0; i < constituents.size(); ++i) {
+
+      if (constituents[i].user_index() < 0) continue; //Only charged + D0
+
       double pt_i = constituents[i].pt();
       
       // Calculate the distance

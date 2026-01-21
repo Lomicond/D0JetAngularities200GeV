@@ -2,7 +2,7 @@
 	
 <!--<input URL="catalog:star.bnl.gov?production=P16ij,trgsetupname=AuAu_200_production_2016,filename~st_physics,filetype=daq_reco_picoDst,library=SL20c,runnumber[]17062049-17179012,storage!=hpss" preferStorage="local" singleCopy="true" nFiles="5000" /> -->
 <!-- <input URL="filelist:/gpfs01/star/pwg/lomicond/Ondrej/Jets/Simulation_D0_Jets_cleared/lists/Run2014_lowmid_s2.txt" nFiles="2500" /> -->
-<input URL="catalog:star.bnl.gov?production=P16id,trgsetupname=AuAu_200_production_mid_2014||AuAu_200_production_low_2014,filename~st_physics,filetype=daq_reco_picoDst,library=SL22c,runnumber[]15107008-16167014,storage!=hpss" preferStorage="local" singleCopy="true" nFiles="3000" />
+<input URL="catalog:star.bnl.gov?production=P16id,trgsetupname=AuAu_200_production_mid_2014||AuAu_200_production_low_2014,filename~st_physics,filetype=daq_reco_picoDst,library=SL22c,runnumber[]15107008-16167014,storage!=hpss" preferStorage="local" singleCopy="true" nFiles="5000" />
 <!--<input URL="catalog:star.bnl.gov?production=P16id,trgsetupname=AuAu_200_production_low_2014,filename~st_physics,filetype=daq_reco_picoDst,library=SL22c,runnumber[]15107008-16167014,storage!=hpss" preferStorage="local" singleCopy="true" nFiles="2000" />-->
 <stdout URL="file:/gpfs01/star/pwg/lomicond/Ondrej/Jets/D0JetAngularities/out/$JOBID.out" />
 <stderr URL="file:/gpfs01/star/pwg/lomicond/Ondrej/Jets/D0JetAngularities/err/$JOBID.err" />

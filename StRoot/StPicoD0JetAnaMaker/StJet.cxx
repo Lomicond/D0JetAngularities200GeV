@@ -540,7 +540,7 @@ Double_t StJet::GetAngularityLambda(const Double_t &kappa, const Double_t &alpha
     Int_t uid = particle->user_index();
 
     // CHARGED COMPONENT (tracks)
-    if (uid >= 0 && uid < 20000)
+    if (uid >= 0) //charged + D0
     {
       //SumPt += particle->pt();
       Double_t particlePhi=particle->phi();
