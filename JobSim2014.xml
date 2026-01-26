@@ -1,8 +1,8 @@
-<job name="D0JetAnalysis" minFilesPerProcess="18" maxFilesPerProcess="25" simulateSubmission="false" fileListSyntax="xrootd" >
+<job  name="D0JetAnalysis" minFilesPerProcess="6" maxFilesPerProcess="8" fileListSyntax="xrootd" simulateSubmission ="false" >
 	
 <!--<input URL="catalog:star.bnl.gov?production=P16ij,trgsetupname=AuAu_200_production_2016,filename~st_physics,filetype=daq_reco_picoDst,library=SL20c,runnumber[]17062049-17179012,storage!=hpss" preferStorage="local" singleCopy="true" nFiles="5000" /> -->
-<!-- <input URL="filelist:/gpfs01/star/pwg/lomicond/Ondrej/Jets/Simulation_D0_Jets_cleared/lists/Run2014_lowmid_s2.txt" nFiles="2500" /> -->
-<input URL="catalog:star.bnl.gov?production=P16id,trgsetupname=AuAu_200_production_mid_2014||AuAu_200_production_low_2014,filename~st_physics,filetype=daq_reco_picoDst,library=SL22c,runnumber[]15107008-16167014,storage!=hpss" preferStorage="local" singleCopy="true" nFiles="all" />
+ <input URL="filelist:/gpfs01/star/pwg/lomicond/Ondrej/Jets/D0JetAngularities/eventLists/Run2014LowMid_shuffled.list" nFiles="2500" />
+<!--<input URL="catalog:star.bnl.gov?production=P16id,trgsetupname=AuAu_200_production_mid_2014||AuAu_200_production_low_2014,filename~st_physics,filetype=daq_reco_picoDst,library=SL22c,runnumber[]15107008-16167014,storage!=hpss" preferStorage="local" singleCopy="true" nFiles="2500" /> -->
 <!--<input URL="catalog:star.bnl.gov?production=P16id,trgsetupname=AuAu_200_production_low_2014,filename~st_physics,filetype=daq_reco_picoDst,library=SL22c,runnumber[]15107008-16167014,storage!=hpss" preferStorage="local" singleCopy="true" nFiles="2000" />-->
 <stdout URL="file:/gpfs01/star/pwg/lomicond/Ondrej/Jets/D0JetAngularities/out/$JOBID.out" />
 <stderr URL="file:/gpfs01/star/pwg/lomicond/Ondrej/Jets/D0JetAngularities/err/$JOBID.err" />
@@ -15,19 +15,20 @@
 </Generator>
                                                 
 <command>
-starver SL22c
-root4star -b -l -q runD0JetAna.C\(\"$FILELIST\",\"D0_Output_2014_lowMid_${JOBINDEX}.root\",2014,false\) &gt;&amp; Log_2014_lowMid_${JOBINDEX}.log
+	starver SL22c
+
+	setenv FASTJET /gpfs01/star/pwg/lomicond/Ondrej/Jets/Alex_install/install/fastjet-install
+	set MCFILENAME = &quot;./mcEventLists/embedding2014.list&quot;
+
+	shuf -n 50 ${MCFILENAME} &gt; ${JOBID}_${JOBINDEX}_MC.list
+	cp `cat ${JOBID}_${JOBINDEX}_MC.list` .
+	ls rcf*.root &gt; ${JOBID}_${JOBINDEX}_MC_Complete.list
+
+	root4star -l -b -q runD0JetSim.C\(\&quot;$FILELIST\&quot;,\&quot;${JOBID}_${JOBINDEX}_MC_Complete.list\&quot;,\&quot;MC_2014_MidLow_${JOBINDEX}\&quot;,100000000,false\) &gt; MC_2014_MidLow_${JOBINDEX}.log
+	date
 </command>
 
-	<ResourceUsage>
-		<Memory>
-			<MinMemory>4000</MinMemory>
-			<!-- <MaxMemory>2000</MaxMemory> -->
-		</Memory>
-	</ResourceUsage>
-
-
-<output fromScratch="*_lowMid_*.root" toURL="/gpfs01/star/pwg/lomicond/Ondrej/Jets/D0JetAngularities/production/" />
+<output fromScratch="MC_2014_MidLow_*.root" toURL="/gpfs01/star/pwg/lomicond/Ondrej/Jets/D0JetAngularities/production/" />
 <output fromScratch="*.log" toURL="/gpfs01/star/pwg/lomicond/Ondrej/Jets/D0JetAngularities/log/" />
 <SandBox installer="ZIP">
 	<Package name="LocalLibraries">
