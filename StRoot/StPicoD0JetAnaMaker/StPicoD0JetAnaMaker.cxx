@@ -160,7 +160,7 @@ void StPicoD0JetAnaMaker::findAllD0Jets(const std::vector<fastjet::PseudoJet>& c
                 //Loading of the particle index
                 Int_t index = particle->user_index();
 
-                //Number of constituents (30010+-2 = D0, 3 = charged, 10 = neutral, -1 ghost)
+                //Number of constituents (30010+-2 = D0, 3 = charged, -10 = neutral, -1 ghost)
                 if (index == -1) continue;
                 //if (particle->pt() < 0.01); continue;
                 
@@ -171,13 +171,13 @@ void StPicoD0JetAnaMaker::findAllD0Jets(const std::vector<fastjet::PseudoJet>& c
                 if(particle->pt() > 0.001) ConstCounter++;
                 
                 //Fraction of neutral particles
-                if (index == 10) neutralpT += particle->pt();
+                if (abs(index) == 10) neutralpT += particle->pt();
                 
                 //Calculating the delta R = sqrt(delta eta^2 + delta phi^2)
                 Double_t Delta_R =delta_R(corrected_jets[i].eta(),corrected_jets[i].phi(),particle->eta(),particle->phi());
 
                 //Angularities are calculated only for track based particles (charged + D0)
-                if (particle->user_index() != 10) {
+                if (abs(particle->user_index()) != 10) {
                     lambda_1_0half+=	pow(particle->pt()/pT_jet_corr, 1)*		pow( Delta_R /fJetRadius ,0.5);
                     lambda_1_1+=	pow(particle->pt()/pT_jet_corr, 1)*		pow( Delta_R /fJetRadius ,1. );
                     lambda_1_1half+=	pow(particle->pt()/pT_jet_corr, 1)*		pow( Delta_R /fJetRadius ,1.5);
@@ -1178,7 +1178,7 @@ Int_t StPicoD0JetAnaMaker::Make() {
         if (ET > fTowerETMin && fOnlyTrackBasedJets == 0){
                         
           //Set the flag to 10 if the particle is neutral
-          inputTower.set_user_index(10);
+          inputTower.set_user_index(-10);
           //Add the neutral particle to the neutral particle vector
           neutraljetTracks.push_back(inputTower);
           //Add the neutral particle to the inclusive particle vector

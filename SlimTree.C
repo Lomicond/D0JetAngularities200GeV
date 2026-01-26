@@ -123,8 +123,8 @@ void CopyDirSlimmed(TDirectory* source, TDirectory* dest)
   }
 }
 
-void SlimTree(const char* inFileName  = "Output_sim_2hardesr_20012026.root",
-                  const char* outFileName = "Output_sim_2hardesr_20012026_slim.root")
+void SlimTree(const char* inFileName  = "Output2HardCF_corr_23012026.root",
+                  const char* outFileName = "Output_sim_2HardCF_corr_26012026.root")
 {
   TFile* fin = TFile::Open(inFileName, "READ");
   if (!fin || fin->IsZombie()) {
