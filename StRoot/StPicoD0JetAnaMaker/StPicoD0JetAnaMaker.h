@@ -123,6 +123,7 @@ class StPicoD0JetAnaMaker : public StMaker{
         void setFDaughterTrackHftRequired(Bool_t tmpDaughterTrackHftRequired);
         void setFRunBadlist(Int_t tmpRunBadlist);
         void setFEventCut_triggers(const std::set<Int_t>& tmpEventTriggers);
+        void setPeriphOccupancyFactor(Bool_t tmpPeriphOccupancyFactor);
         void setFPionTpcNSigma(Double_t tmpPionTpcNSigma);
         void setFPionTofBetaDiff(Double_t tmpPionTofBetaDiff);
         void setFKaonTpcNSigma(Double_t tmpKaonTpcNSigma);
@@ -380,6 +381,7 @@ class StPicoD0JetAnaMaker : public StMaker{
 
         Bool_t fSetJetBgSub = true;
         Int_t fJetBgSubMethod = 2;
+        Bool_t fPeriphOccupancyFactor = false;
         Int_t fJetNHardestSkipped_010 = 2;
         Int_t fJetNHardestSkipped_1080 = 1; 
         Bool_t fSetJetFixedSeed = false;
@@ -413,6 +415,10 @@ inline void StPicoD0JetAnaMaker::setFEventCut_vZVpdVZ(Double_t tmpVZVpdVZ){
 
 inline void StPicoD0JetAnaMaker::setFEventCut_triggers(const std::set<Int_t>& tmpEventTriggers){
  fEventTriggers = tmpEventTriggers;
+}
+
+inline void StPicoD0JetAnaMaker::setPeriphOccupancyFactor(Bool_t tmpPeriphOccupancyFactor){
+	fPeriphOccupancyFactor = tmpPeriphOccupancyFactor;
 }
 
 //Daughter cuts

@@ -514,6 +514,7 @@ Int_t StHIOverlayAngularities::Init()
   cout << "Background phi modulation: " << (fPhiBgModulation ? "true" : "false") << endl;
   cout << "Number of skipped hardest jets: " << fJetNHardestSkipped_010 
        << " for 0-10% and " << fJetNHardestSkipped_1080 << " for 10-80%" << endl;
+  cout << "Occupancy factor for background estimation (40-80%): " << (fPeriphOccupancyFactor == true ? "true" : "false") << endl;
   cout << (fSetJetFixedSeed ? Form("Fastjet with fixed seed: %d", fJetFJSeed) 
                             : "Fastjet with random seed") << endl;
 
@@ -1335,6 +1336,7 @@ Int_t StHIOverlayAngularities::Make()
       fjw->SetEventPlane2(fPsi_2_shifted);
       fjw->SetPhiModulation(fPhiBgModulation);
       fjw->setJetNHardestSkipped(fJetNHardestSkipped_010, fJetNHardestSkipped_1080);
+      fjw->SetPeriphOccupancyFactor(fPeriphOccupancyFactor);         
       fjw->setJetFixedSeed(fSetJetFixedSeed, fJetFJSeed);
       
       // Loop over all saved particles for MC in vectors and enter them into fastjet wrapper
@@ -1411,6 +1413,7 @@ Int_t StHIOverlayAngularities::Make()
       fjw->SetEventPlane2(fPsi_2_shifted);
       fjw->SetPhiModulation(fPhiBgModulation);
       fjw->setJetNHardestSkipped(fJetNHardestSkipped_010, fJetNHardestSkipped_1080);
+      fjw->SetPeriphOccupancyFactor(fPeriphOccupancyFactor);         
       fjw->setJetFixedSeed(fSetJetFixedSeed, fJetFJSeed);
       if (fPrintLevel)
       {
@@ -1850,6 +1853,7 @@ Int_t StHIOverlayAngularities::Make()
       fjw->SetPhiModulation(fPhiBgModulation);
       fjw->SetICSSubtractionParams(fICSMaxDistances, fICSAlphas);
       fjw->setJetNHardestSkipped(fJetNHardestSkipped_010, fJetNHardestSkipped_1080);	
+      fjw->SetPeriphOccupancyFactor(fPeriphOccupancyFactor);         
       fjw->setJetFixedSeed(fSetJetFixedSeed, fJetFJSeed);
 
       jetReco = DoesItHaveAGoodD0Jet(fRecoMcEventTracks[iMcD0Event], /*level*/ 2, /*method*/ 1); // run fjw and get the jets
@@ -1867,7 +1871,8 @@ Int_t StHIOverlayAngularities::Make()
       fjw->SetEventPlane2(fPsi_2_shifted);
       fjw->SetPhiModulation(fPhiBgModulation);
       fjw->SetICSSubtractionParams(fICSMaxDistances, fICSAlphas);
-      fjw->setJetNHardestSkipped(fJetNHardestSkipped_010, fJetNHardestSkipped_1080);	
+      fjw->setJetNHardestSkipped(fJetNHardestSkipped_010, fJetNHardestSkipped_1080);
+      fjw->SetPeriphOccupancyFactor(fPeriphOccupancyFactor);         	
       fjw->setJetFixedSeed(fSetJetFixedSeed, fJetFJSeed);
 
       ICS_jetReco = DoesItHaveAGoodD0Jet(fRecoMcEventTracks[iMcD0Event], /*level*/ 2, /*method*/ 2); // run fjw and get the jets

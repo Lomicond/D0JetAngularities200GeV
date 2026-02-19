@@ -188,6 +188,7 @@ void runD0JetAna_Neil(string pico="testPico.list",
    //Background calculation
    picoD0JetAnaMaker->setJetBgSubtraction(true, 12); // true = bg subtraction; method: //1 - Area based method + jet shape method // 2 - ICS // 12 or 21 - both
    /**/picoD0JetAnaMaker->setJetNHardestSkipped(2, 2); // First: 0-10%; Second: 10-80% //CHANGE
+   /**/picoD0JetAnaMaker->setPeriphOccupancyFactor(false); //Occupancy factor for rho (only 40-80%)
    picoD0JetAnaMaker->setJetBgPhiModulation(false);
 
    chain->Init();

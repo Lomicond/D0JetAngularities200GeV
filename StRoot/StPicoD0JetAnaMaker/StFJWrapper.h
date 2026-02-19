@@ -179,6 +179,7 @@ class StFJWrapper
   //void SetMassiveTest(Bool_t MassiveTest) {fMassiveTest = MassiveTest;}
   void SetEventPlane2(Double_t EP_psi2) {fEP_psi2 = EP_psi2;}
   void SetBackgroundSub(Bool_t BackSub)  { fBackSub = BackSub; }
+  void SetPeriphOccupancyFactor(Bool_t tmpPeriphOccupancyFactor){fPeriphOccupancyFactor = tmpPeriphOccupancyFactor; }
   void SetSubtractionMc(Bool_t SubtractMc)  { fSubtractMc = SubtractMc; }
   Bool_t GetBackgroundSub() const { return fBackSub; }
   Double_t GetActualShapeL10half() const { return fAngul10half; }
@@ -272,6 +273,7 @@ class StFJWrapper
   Double_t                               fMedUsedForBgSub;    
   Bool_t                                 fUseArea4Vector;    
   Bool_t				                         fBackSub;
+  Bool_t 				fPeriphOccupancyFactor;
   Bool_t				                         fSubtractMc;
   Bool_t 				                         fPhiModulation;
   Int_t  		    		                     fJetNHardestSkipped_010;
@@ -514,6 +516,7 @@ StFJWrapper::StFJWrapper(const char *name, const char *title)
   , fMedUsedForBgSub   (0)
   , fUseArea4Vector    (kFALSE)
   , fBackSub	       (kTRUE)
+  , fPeriphOccupancyFactor(kFALSE)
   , fSubtractMc        (kTRUE)
   , fPhiModulation     (kFALSE)
   , fJetNHardestSkipped_010 (2)
@@ -708,7 +711,7 @@ Int_t StFJWrapper::runICSMethod() {
 	bkgd_estimator.set_particles(inputRealOnly); //MC cant be included
 
   double C = 1;
-  if (fCentrality < 4) C = ComputeOccupancyC_fromJetsUsed(bkgd_estimator);
+  if (fCentrality < 4 && fPeriphOccupancyFactor) C = ComputeOccupancyC_fromJetsUsed(bkgd_estimator);
   ScaledBGE scaled(&bkgd_estimator, C);
 
   //--- Event wide ICS background subtraction ---
@@ -827,7 +830,7 @@ Int_t StFJWrapper::runAreaBgAndAreaShapeMethod(){
 
 	if (fBackSub){
     C = 1.0; // Temporarily disable occupancy correction
-    if (fCentrality < 4) C = ComputeOccupancyC_fromJetsUsed(bkgd_estimator);
+    if (fCentrality < 4 && fPeriphOccupancyFactor) C = ComputeOccupancyC_fromJetsUsed(bkgd_estimator);
 	  fJetRho = C*bkgd_estimator.rho();
 	  fJetRhoM = C*bkgd_estimator.rho_m(); 
     //cout << Form("StFJWrapper::runAreaBgAndAreaShapeMethod: Rho = %.2f, RhoM = %.2f, C = %.2f", fJetRho, fJetRhoM, C) << endl;

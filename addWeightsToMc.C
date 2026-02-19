@@ -11,12 +11,11 @@
 #include "TMath.h"
 #include <iostream>
 #include <cstring>
+#include "TH1D.h"
 
 // seznam větví, které chceme ve stromu "jets" zachovat
 static const char* neededBranches[] = {
-  "centrality",
   "centralityAlt",
-  "gRefMult",
   "weightCentrality",
   "mcJetPt",
   "mcJetLambda1_1",
@@ -27,12 +26,7 @@ static const char* neededBranches[] = {
   "mcJetMomDisp",
   "mcJetD0Z",
   "mcD0Pt",
-  "mcJetNConst",
-  "mcSmearedD0Eta",
-  "mcSmearedJetEta",
-  "mcSmearedD0Pt",
   "mcJetEta",
-  "mcJetD0DeltaR",
   "recoJetPt",
   "recoJetPtCorr",
   "recoJetRho",
@@ -46,7 +40,6 @@ static const char* neededBranches[] = {
   "recoJetD0Z",
   "recoJetEta",
   "recoJetArea",
-  "recoJetD0DeltaR",
   "ICS_recoJetRho",
   "ICS_recoJetPt",
   "ICS_recoJetRho",
@@ -60,8 +53,7 @@ static const char* neededBranches[] = {
   "ICS_recoJetD0Z",
   "ICS_recoJetEta",
   "ICS_recoJetArea",
-  "ICS_recoJetRho",
-  "ICS_recoJetD0DeltaR"
+  "ICS_recoJetRho"
 };
 static const int nNeededBranches = sizeof(neededBranches)/sizeof(neededBranches[0]);
 
@@ -91,7 +83,6 @@ void CopyDirSlimmed(TDirectory* source, TDirectory* dest)
       CopyDirSlimmed(srcSubDir, dstSubDir);
     }
     else if (obj->InheritsFrom("TTree") && TString(obj->GetName()) == "jets") {
-
       TTree* oldTree = (TTree*)obj;
 
       // vypnout všechny větve, pak zapnout jen ty potřebné
@@ -100,36 +91,76 @@ void CopyDirSlimmed(TDirectory* source, TDirectory* dest)
         oldTree->SetBranchStatus(neededBranches[i], 1);
       }
 
-      // --- čtecí proměnné pro filtr ---
+      // --- čtecí proměnné pro filtr + pT ---
       Float_t mcJetEta   = 0.f;
       Float_t recoJetEta = 0.f;
-      Float_t ICS_recoJetEta = 0.f;
-      Float_t centralityAlt = 0.f;
+      Float_t mcJetPt    = 0.f;
 
-      // nastav adresy jen pokud větev existuje a je aktivní
-      if (oldTree->GetBranch("mcJetEta"))
-        oldTree->SetBranchAddress("mcJetEta", &mcJetEta);
-      if (oldTree->GetBranch("recoJetEta"))
-        oldTree->SetBranchAddress("recoJetEta", &recoJetEta);
-      if (oldTree->GetBranch("ICS_recoJetEta"))
-        oldTree->SetBranchAddress("ICS_recoJetEta", &ICS_recoJetEta);
-      if (oldTree->GetBranch("centralityAlt"))
-        oldTree->SetBranchAddress("centralityAlt", &centralityAlt);
-        
-      dest->cd();
-      TTree* newTree = oldTree->CloneTree(0); // klon struktury, Fill bere hodnoty z oldTree po GetEntry
+      if (oldTree->GetBranch("mcJetEta"))   oldTree->SetBranchAddress("mcJetEta", &mcJetEta);
+      if (oldTree->GetBranch("recoJetEta")) oldTree->SetBranchAddress("recoJetEta", &recoJetEta);
+      if (oldTree->GetBranch("mcJetPt"))    oldTree->SetBranchAddress("mcJetPt",  &mcJetPt);
+
+      // ---- PASS 1: naplnit dN/dpT po filtru ----
+      // Nastav si rozumný rozsah; případně uprav podle tvých dat
+      const int    nPtBins = 200;
+      const double ptMin   = 0.0;
+      const double ptMax   = 30.0;
+
+      TH1D hPt("hPt_tmp", "mcJetPt after eta filter;mcJetPt;counts", nPtBins, ptMin, ptMax);
+      hPt.Sumw2();
 
       Long64_t nEntries = oldTree->GetEntries();
       for (Long64_t i = 0; i < nEntries; ++i) {
         oldTree->GetEntry(i);
 
-	//if (centralityAlt < 40) continue;
-        if (TMath::Abs(mcJetEta) > 0.6 && TMath::Abs(recoJetEta) > 0.6 && TMath::Abs(ICS_recoJetEta) > 0.6)
-          continue;
+        if (TMath::Abs(mcJetEta) > 0.6 || TMath::Abs(recoJetEta) > 0.6) continue;
+        if (mcJetPt > 30) continue;
 
-	if (i%10000==0) cout << Form("%.2f percent", (double)i/nEntries*100.) << endl;
+        // počítáme tvar mcJetPt
+        hPt.Fill(mcJetPt);
+      }
 
-        // NIC NEMĚNIT: centrality, centralityAlt, ani nic dalšího
+      // ---- z histogramu udělat váhy w(pt)=1/N(bin), normalizace na <w>=1 ----
+      std::vector<double> wPt(nPtBins + 2, 1.0); // ROOT bins: 0..n+1
+      double sumW = 0.0;
+      int nNonZero = 0;
+
+      for (int b = 1; b <= nPtBins; ++b) {
+        const double c = hPt.GetBinContent(b);
+        if (c > 0.0) {
+          wPt[b] = 1.0 / c;
+          sumW += wPt[b];
+          nNonZero++;
+        } else {
+          wPt[b] = 0.0; // prázdné biny nedávat nekonečno
+        }
+      }
+
+      const double meanW = (nNonZero > 0) ? (sumW / nNonZero) : 1.0;
+      if (meanW > 0.0) {
+        for (int b = 1; b <= nPtBins; ++b) {
+          if (wPt[b] > 0.0) wPt[b] /= meanW; // <w> ~ 1
+        }
+      }
+
+      // ---- PASS 2: uložit slim tree + přidat branch weightFlatPt ----
+      dest->cd();
+      TTree* newTree = oldTree->CloneTree(0);
+
+      Float_t weightFlatPt = 1.f;
+      TBranch* bWeightFlat = newTree->Branch("weightFlatPt", &weightFlatPt, "weightFlatPt/F");
+
+      for (Long64_t i = 0; i < nEntries; ++i) {
+        oldTree->GetEntry(i);
+
+        if (TMath::Abs(mcJetEta) > 0.6 || TMath::Abs(recoJetEta) > 0.6) continue;
+
+        // binning přesně jako histogram (stejné ptMin/ptMax/nPtBins)
+        int bin = hPt.FindBin(mcJetPt);
+        if (bin < 1) bin = 1;
+        if (bin > nPtBins) bin = nPtBins;
+
+        weightFlatPt = (Float_t)wPt[bin];
         newTree->Fill();
       }
 
@@ -137,6 +168,7 @@ void CopyDirSlimmed(TDirectory* source, TDirectory* dest)
 
       // vrátit status větví
       oldTree->SetBranchStatus("*", 1);
+
     }
     else {
       dest->cd();
@@ -147,8 +179,8 @@ void CopyDirSlimmed(TDirectory* source, TDirectory* dest)
   }
 }
 
-void SlimTree(const char* inFileName  = "Output_sim_final2_10022026.root",
-                  const char* outFileName = "Output_sim_final3_17022026_slim.root")
+void addWeightsToMc(const char* inFileName  = "Output_sim_final_01022026.root",
+                  const char* outFileName = "Output_sim_final_01022026_slim.root")
 {
   TFile* fin = TFile::Open(inFileName, "READ");
   if (!fin || fin->IsZombie()) {

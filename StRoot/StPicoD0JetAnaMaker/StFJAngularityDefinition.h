@@ -26,8 +26,7 @@ public:
     
     for (size_t i = 0; i < constituents.size(); ++i) {
 
-      if (constituents[i].user_index() < 0) continue; //Only charged + D0
-
+      if (constituents[i].user_index() < -1) continue; //Only charged + D0 + ghost (important)
       double pt_i = constituents[i].pt();
       
       // Calculate the distance

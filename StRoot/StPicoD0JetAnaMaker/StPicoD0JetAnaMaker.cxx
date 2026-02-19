@@ -404,6 +404,7 @@ Int_t StPicoD0JetAnaMaker::Init(){
 					"Weird") << endl;
         cout << "Bg. phi modulation: " << (fPhiModulation  == false ? "false" : fPhiModulation  == true ? "true" : "Weird") << endl;
 	cout << "Number of skipped hardest jets: " << fJetNHardestSkipped_010 << " for 0-10\%" << " and " << fJetNHardestSkipped_1080 << " for 10-80\%" << endl; 
+	cout << "Occupancy factor for background estimation (40-80%): " << (fPeriphOccupancyFactor == true ? "true" : "false") << endl;
 	cout << (fSetJetFixedSeed  == true ? Form("Fastjet with fixed seed: %d",fJetFJSeed) : fSetJetFixedSeed  == false ? "Fastjet with random seed" : "Weird") << endl;
 
 
@@ -573,7 +574,8 @@ Int_t StPicoD0JetAnaMaker::Init(){
   fjw->SetR(fJetRadius); 
   fjw->SetAlgorithm(fastjet::antikt_algorithm);
   fjw->SetRecombScheme(fastjet::E_scheme); 
-  fjw->SetMaxRap(10.);                 
+  fjw->SetMaxRap(10.);        
+  fjw->SetPeriphOccupancyFactor(fPeriphOccupancyFactor);         
   return kStOK;
 }
 
@@ -1235,7 +1237,8 @@ Int_t StPicoD0JetAnaMaker::Make() {
         fjw->SetICSSubtractionParams(fICSMaxDistances, fICSAlphas);
         fjw->setJetNHardestSkipped(fJetNHardestSkipped_010, fJetNHardestSkipped_1080);	
         fjw->setJetFixedSeed(fSetJetFixedSeed, fJetFJSeed);
-                  
+        fjw->SetPeriphOccupancyFactor(fPeriphOccupancyFactor);         
+        
         fjw->AddInputVectors(input_particles);                 
         fjw->runAreaBgAndAreaShapeMethod();
           
@@ -1265,6 +1268,7 @@ Int_t StPicoD0JetAnaMaker::Make() {
         fjw->SetICSSubtractionParams(fICSMaxDistances, fICSAlphas);
         fjw->setJetNHardestSkipped(fJetNHardestSkipped_010, fJetNHardestSkipped_1080);	
         fjw->setJetFixedSeed(fSetJetFixedSeed, fJetFJSeed);
+        fjw->SetPeriphOccupancyFactor(fPeriphOccupancyFactor);         
                   
         fjw->AddInputVectors(input_particles);        
         fjw->runICSMethod();

@@ -129,6 +129,7 @@ protected:
   Bool_t fSetJetMinAreaCut[3];
   Double_t fJetMinAreaCut = 0;
   Bool_t fSetJetMinAbsEtaCut[3];
+  Bool_t fPeriphOccupancyFactor = false;
   Double_t fJetMinAbsEtaCut = 1;
 
   // Jet Constituents - D0
@@ -255,6 +256,11 @@ public:
     fSetJetMinAbsEtaCut[2] = setJetMinAbsEtaCut2;
     fJetMinAbsEtaCut = jetMinAbsEtaCut;
   } // !!!TODO
+
+
+  virtual void setPeriphOccupancyFactor(Bool_t tmpPeriphOccupancyFactor){
+	fPeriphOccupancyFactor = tmpPeriphOccupancyFactor;
+  }
 
   virtual void SetMcChargedPart(Double_t McChargedPart) { fMcChargedPart = McChargedPart; }
   virtual void SetMcNeutralPart(Double_t McNeutralPart) { fMcNeutralPart = McNeutralPart; }
