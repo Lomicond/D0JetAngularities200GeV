@@ -1,0 +1,53 @@
+build for #.sl73_x8664_gcc485
+Base DEBUG options = -g
+	DEBUG is enabled (enable optimize by setting the ENV NODEBUG)
+	The ENV variable OPTIM_OPTIONS may override the default optimize options
+System: sl73_x8664_gcc485
+CERNLIB =  /star/nfs4/AFS/star/cern64/pro/lib/libpawlib.a /star/nfs4/AFS/star/cern64/pro/lib/liblapack3.a /star/nfs4/AFS/star/cern64/pro/lib/libblas.a /star/nfs4/AFS/star/cern64/pro/lib/libpacklib_noshift.a /star/nfs4/AFS/star/cern64/pro/lib/libgraflib.a /star/nfs4/AFS/star/cern64/pro/lib/libgrafX11.a /star/nfs4/AFS/star/cern64/pro/lib/libpacklib_noshift.a /star/nfs4/AFS/star/cern64/pro/lib/libmathlib.a /star/nfs4/AFS/star/cern64/pro/lib/libkernlib_noshift.a -L/usr/X11R6/lib -lX11 -lnsl -lcrypt -ldl
+CXX_VERSION : 4.8.5 MAJOR = 4 MINOR = 8
+	CXX version implies using C++/C++11 c++0x standard
+	Removing duplicate -fPIC from CFLAGS
+	Removing duplicate -m64 from CFLAGS
+	Removing duplicate -m64 from CXXFLAGS
+Using /star/nfs4/AFS/star/opt/star/sl73_gcc485/bin/mysql_config
+	MYSQLINCDIR = /usr/include/mysql MYSQLLIBDIR = /usr/lib/mysql  	MYSQLLIB =  -lmysqlclient -Wl,--no-whole-archive -Wl,-Bdynamic -lpthread -lz -lm -lssl -lcrypto -ldl
+Use QTLIBDIR = /star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/lib 	QTINCDIR = /star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/include:/star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/include/Qt:/star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/include/QtCore:/star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/include/QtXml:/star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/include/QtNetwork:/star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/include/QtSql:/star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/include/QtTest:/star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/include/QtDBus:/star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/include/QtGui:/star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/include/Qt3Support:/star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/include/QtOpenGL:/star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/include/QtMultimedia:/star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/include/QtSvg:/star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/include/QtScript:/star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/include/QtDeclarative:/star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/include/QtWebKit:/star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/include/QtScriptTools:/star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/include/QtHelp:/star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/include/QtUiTools:/star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/include/QtDesigner 	QTFLAGS = -DR__QT -DQT_QT3SUPPORT_LIB -DQT3_SUPPORT -DQT_GUI_LIB -DQT_CORE_LIB -DQT_SHARED  	QTLIBS =  -lQtCore -lQtXml -lQtNetwork -lQtSql -lQtTest -lQtDBus -lQtGui -lQt3Support -lQtOpenGL -lQtMultimedia -lQtSvg -lQtScript -lQtDeclarative -lQtWebKit -lQtScriptTools -lQtCLucene -lQtHelp -lQtDesigner -lQtDesignerComponents
+Use COIN3DLIBDIR = /star/nfs4/AFS/star/opt/star/sl73_gcc485/bin 	COIN3DINCDIR = /star/nfs4/AFS/star/opt/star/sl73_gcc485/include 	COIN3DFLAGS =  	COIN3DLIBS = -lCoin -lSmallChange -lSoQt -lsimage
+Use Logger  LIBDIR = /star/nfs4/AFS/star/opt/star/sl73_gcc485/lib 	LoggerINCDIR = /star/nfs4/AFS/star/opt/star/sl73_gcc485/include 	LoggerLIBS = -llog4cxx
+Use xml /usr/bin/xml2-config XMLLIBDIR = /usr/lib64 	XMLINCDIR = /usr/include/libxml2 	XMLLIBS = -lxml2 -lz -lm -ldl XMLCPPFlag =
+param::defaultInclude = .sl73_x8664_gcc485/include
+Repository used is /star/nfs4/AFS/star/packages/SL22c
+Use default Conscript from Conscript-standard 
+Install includes
+Set LIB = #.sl73_x8664_gcc485/lib BIN = #.sl73_x8664_gcc485/bin OBJ = #.sl73_x8664_gcc485/obj INCLUDE = #.sl73_x8664_gcc485/include LIBPATH = #.sl73_x8664_gcc485/lib:/star/nfs4/AFS/star/ROOT/5.34.38/.sl73_x8664_gcc485/rootdeb/lib:/usr/lib/mysql:/star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/lib:/star/nfs4/AFS/star/opt/star/sl73_gcc485/lib
+DirPath    = /gpfs/mnt/gpfs01/star/pwg/lomicond/Ondrej/Jets/D0JetAngularities
+repository = /star/nfs4/AFS/star/packages/SL22c
+Repositories:  "/star/nfs4/AFS/star/packages/SL22c";	Set Salt to "user"
+Link #.sl73_x8664_gcc485 => /gpfs/mnt/gpfs01/star/pwg/lomicond/Ondrej/Jets/D0JetAngularities
+STAR_SYS = sl73_x8664_gcc485	ROOTSYS = /star/nfs4/AFS/star/ROOT/5.34.38/.sl73_x8664_gcc485/rootdeb
+CXX = g++	DEBUG = -g	CXXFLAGS = -m64 -fPIC -pipe -Wall -Woverloaded-virtual -std=c++0x -Wno-long-long -pthread 	CPPFLAGS =  -Dsl73_x8664_gcc485 -D__ROOT__
+CPPPATH = #:#StRoot:#.sl73_x8664_gcc485/include:/star/nfs4/AFS/star/ROOT/5.34.38/.sl73_x8664_gcc485/rootdeb/include
+CC = gcc	DEBUG = -g	CFLAGS = -m64 -fPIC -w -pipe -Wall -Wshadow -pthread  -Dsl73_x8664_gcc485 -D__ROOT__
+FC = gfortran	FDEBUG = -g	FPPFLAGS =  -DCERNLIB_TYPE -DCERNLIB_DOUBLE -DCERNLIB_NOQUAD -DCERNLIB_LINUX  -Dsl73_x8664_gcc485	FEXTEND = -ffixed-line-length-132	FFLAGS = -m64 -fd-lines-as-code  -std=legacy -fno-second-underscore -w -fno-automatic -Wall -W -Wsurprising -fPIC
+FCPATH = #.sl73_x8664_gcc485/include:#asps/Simulation/geant321/include:/star/nfs4/AFS/star/cern64/pro/include:#
+F77LD = g++	F77LDFLAGS = -m64
+CERNLIBS =  /star/nfs4/AFS/star/cern64/pro/lib/libpawlib.a /star/nfs4/AFS/star/cern64/pro/lib/liblapack3.a /star/nfs4/AFS/star/cern64/pro/lib/libblas.a /star/nfs4/AFS/star/cern64/pro/lib/libpacklib_noshift.a /star/nfs4/AFS/star/cern64/pro/lib/libgraflib.a /star/nfs4/AFS/star/cern64/pro/lib/libgrafX11.a /star/nfs4/AFS/star/cern64/pro/lib/libpacklib_noshift.a /star/nfs4/AFS/star/cern64/pro/lib/libmathlib.a /star/nfs4/AFS/star/cern64/pro/lib/libkernlib_noshift.a -L/usr/X11R6/lib -lX11 -lnsl -lcrypt -ldl
+FLIBS = -lgfortran -lquadmath	CLIBS =  -L/usr/X11R6/lib64 -lXt -lXpm -lX11 -lm -ldl -lrt -rdynamic -pthread	SYSLIBS = -lm -ldl -lrt -rdynamic -pthread
+LD = g++	LDFLAGS = -m64	LIBPATH = #.sl73_x8664_gcc485/lib:/star/nfs4/AFS/star/ROOT/5.34.38/.sl73_x8664_gcc485/rootdeb/lib:/usr/lib/mysql:/star/nfs4/AFS/star/opt/star/sl73_gcc485/qt4/lib:/star/nfs4/AFS/star/opt/star/sl73_gcc485/lib
+SO = g++	SOFLAGS = -m64 -shared -Wl,-Bdynamic
+
+ROOTLIBS = -lCore -lCint -lRIO -lNet -lHist -lGraf -lGraf3d -lGpad -lTree -lRint -lPostscript -lMatrix -lPhysics -lMathCore -lThread
+BUILD  = #.sl73_x8664_gcc485 OBJ = #.sl73_x8664_gcc485/obj
+Run Conscript-standard in StRoot/StPicoD0JetAnaMaker      for StPicoD0JetAnaMaker 
+Run Conscript-standard in StRoot/StRefMultCorr            for StRefMultCorr       
+***************************************************************
+ WARNING from cons 
+   [list] found as an include dependency but is also a directory.
+   Until renamed, the include-dependency will not be checked.
+***************************************************************
+g++ -m64 -fPIC -pipe -Wall -Woverloaded-virtual -std=c++0x -Wno-long-long -pthread -g -Dsl73_x8664_gcc485 -D__ROOT__ -DNEW_DAQ_READER -I. -IStRoot -I.sl73_x8664_gcc485/include -I/star/nfs4/AFS/star/packages/SL22c -I/star/nfs4/AFS/star/packages/SL22c/StRoot -I/star/nfs4/AFS/star/packages/SL22c/.sl73_x8664_gcc485/include -I/star/nfs4/AFS/star/ROOT/5.34.38/.sl73_x8664_gcc485/rootdeb/include -c .sl73_x8664_gcc485/obj/StRoot/StPicoD0JetAnaMaker/StCuts.cxx -o .sl73_x8664_gcc485/obj/StRoot/StPicoD0JetAnaMaker/StCuts.o
+g++ -m64 -fPIC -pipe -Wall -Woverloaded-virtual -std=c++0x -Wno-long-long -pthread -g -Dsl73_x8664_gcc485 -D__ROOT__ -DNEW_DAQ_READER -I. -IStRoot -I.sl73_x8664_gcc485/include -I/star/nfs4/AFS/star/packages/SL22c -I/star/nfs4/AFS/star/packages/SL22c/StRoot -I/star/nfs4/AFS/star/packages/SL22c/.sl73_x8664_gcc485/include -I/star/nfs4/AFS/star/ROOT/5.34.38/.sl73_x8664_gcc485/rootdeb/include -c .sl73_x8664_gcc485/obj/StRoot/StPicoD0JetAnaMaker/StHIOverlayAngularities.cxx -o .sl73_x8664_gcc485/obj/StRoot/StPicoD0JetAnaMaker/StHIOverlayAngularities.o
+g++ -m64 -fPIC -pipe -Wall -Woverloaded-virtual -std=c++0x -Wno-long-long -pthread -g -Dsl73_x8664_gcc485 -D__ROOT__ -DNEW_DAQ_READER -I. -IStRoot -I.sl73_x8664_gcc485/include -I/star/nfs4/AFS/star/packages/SL22c -I/star/nfs4/AFS/star/packages/SL22c/StRoot -I/star/nfs4/AFS/star/packages/SL22c/.sl73_x8664_gcc485/include -I/star/nfs4/AFS/star/ROOT/5.34.38/.sl73_x8664_gcc485/rootdeb/include -c .sl73_x8664_gcc485/obj/StRoot/StPicoD0JetAnaMaker/StPicoD0JetAnaMaker.cxx -o .sl73_x8664_gcc485/obj/StRoot/StPicoD0JetAnaMaker/StPicoD0JetAnaMaker.o
+g++ -g -m64 -shared -Wl,-Bdynamic -o .sl73_x8664_gcc485/obj/StRoot/StPicoD0JetAnaMaker/StPicoD0JetAnaMaker.so .sl73_x8664_gcc485/obj/StRoot/StPicoD0JetAnaMaker/StCuts.o .sl73_x8664_gcc485/obj/StRoot/StPicoD0JetAnaMaker/StFJWrapper.o .sl73_x8664_gcc485/obj/StRoot/StPicoD0JetAnaMaker/StHIOverlayAngularities.o .sl73_x8664_gcc485/obj/StRoot/StPicoD0JetAnaMaker/StJet.o .sl73_x8664_gcc485/obj/StRoot/StPicoD0JetAnaMaker/StKaonPion.o .sl73_x8664_gcc485/obj/StRoot/StPicoD0JetAnaMaker/StPicoD0JetAnaMaker.o .sl73_x8664_gcc485/obj/StRoot/StPicoD0JetAnaMaker/StPicoD0JetAnaMaker_Cint.o
+Install .sl73_x8664_gcc485/obj/StRoot/StPicoD0JetAnaMaker/StPicoD0JetAnaMaker.so as .sl73_x8664_gcc485/lib/StPicoD0JetAnaMaker.so
+Install .sl73_x8664_gcc485/obj/StRoot/StPicoD0JetAnaMaker/StPicoD0JetAnaMaker.so as .sl73_x8664_gcc485/lib/libStPicoD0JetAnaMaker.so

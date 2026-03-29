@@ -19,6 +19,7 @@ static const char* neededBranches[] = {
   "gRefMult",
   "weightCentrality",
   "mcJetPt",
+  "mcJetArea",
   "mcJetLambda1_1",
   "mcJetLambda1_1_5",
   "mcJetLambda1_2",
@@ -127,12 +128,18 @@ void CopyDirSlimmed(TDirectory* source, TDirectory* dest)
         if (TMath::Abs(mcJetEta) > 0.6 && TMath::Abs(recoJetEta) > 0.6 && TMath::Abs(ICS_recoJetEta) > 0.6)
           continue;
 
-	if (i%10000==0) cout << Form("%.2f percent", (double)i/nEntries*100.) << endl;
+
+	if (i%4!=0) continue;
+	
+	if (i%10000==0) {
+	cout << "\r"<< flush;
+	cout << Form("%.2f percent", (double)i/nEntries*100.) << flush;
+	}
 
         // NIC NEMĚNIT: centrality, centralityAlt, ani nic dalšího
         newTree->Fill();
       }
-
+	cout << endl;
       newTree->Write("jets", TObject::kOverwrite);
 
       // vrátit status větví
@@ -148,7 +155,7 @@ void CopyDirSlimmed(TDirectory* source, TDirectory* dest)
 }
 
 void SlimTree(const char* inFileName  = "Output_sim_final2_10022026.root",
-                  const char* outFileName = "Output_sim_final3_17022026_slim.root")
+                  const char* outFileName = "Output_sim_final2_23022026_slim.root")
 {
   TFile* fin = TFile::Open(inFileName, "READ");
   if (!fin || fin->IsZombie()) {

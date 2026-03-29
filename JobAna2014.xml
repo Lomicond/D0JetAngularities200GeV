@@ -7,6 +7,8 @@
 <stdout URL="file:/gpfs01/star/pwg/lomicond/Ondrej/Jets/D0JetAngularities/out/$JOBID.out" />
 <stderr URL="file:/gpfs01/star/pwg/lomicond/Ondrej/Jets/D0JetAngularities/err/$JOBID.err" />
 
+<shell>singularity exec -e -B /direct -B /star -B /afs -B /gpfs -B /sdcc/lustre02 /cvmfs/star.sdcc.bnl.gov/containers/rhic_sl7.sif</shell>
+
                 
 <Generator>
 <Location>/gpfs01/star/pwg/lomicond/Ondrej/Jets/D0JetAngularities/report/</Location>
@@ -15,8 +17,13 @@
 </Generator>
                                                 
 <command>
-starver SL22c
-root4star -b -l -q runD0JetAna.C\(\"$FILELIST\",\"D0_Output_2014_lowMid_${JOBINDEX}.root\",2014,false\) &gt;&amp; Log_2014_lowMid_${JOBINDEX}.log
+
+
+	setup 64b
+	starver SL22c
+	cons
+	setenv FASTJET /gpfs01/star/pwg/lomicond/Ondrej/Jets/Alma9FastJet/fastjet-install	
+	root4star -b -l -q runD0JetAna.C\(\"$FILELIST\",\"D0_Output_2014_lowMid_${JOBINDEX}.root\",2014,false\) &gt;&amp; Log_2014_lowMid_${JOBINDEX}.log
 </command>
 
 	<ResourceUsage>

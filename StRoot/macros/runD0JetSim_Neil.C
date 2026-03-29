@@ -61,7 +61,7 @@ StChain *chain;
 void runD0JetSim_Neil(const Char_t *inputFile = "",
                                     // char *mcfilename = "/gpfs01/star/pwg/droy1/STAR-Workspace/D0Analysis/AuAuSimFramework/Test3.list",
                                     char *mcfilename = "./mcEventLists/Run14_Sim_TestList.list",
-                                    const Char_t *outputFile = "output_D0JetSimTest_Neil", Int_t nEvents = 30, bool doTEST = kTRUE, int pYear = 2014) ///Zmenit to v xml!!!!
+                                    const Char_t *outputFile = "output_D0JetSimTest_Neil", Int_t nEvents = 100, bool doTEST = kTRUE, int pYear = 2014) ///Zmenit to v xml!!!!
 {
 
    TString out = outputFile;
@@ -95,8 +95,9 @@ void runD0JetSim_Neil(const Char_t *inputFile = "",
     // create chain
     StChain *chain = new StChain();
 
-    StRefMultCorr* grefmultCorrUtil = new StRefMultCorr("grefmult", "Run14_AuAu200_VpdMB5", "P16id");
-
+    //StRefMultCorr* grefmultCorrUtil = new StRefMultCorr("grefmult", "Run14_AuAu200_VpdMB5", "P16id"); //Right defintion
+    StRefMultCorr* grefmultCorrUtil = new StRefMultCorr("grefmult"); //Wrong def.
+    
     // create the picoMaker maker
     StPicoDstMaker *picoMaker = new StPicoDstMaker(StPicoDstMaker::IoRead, inputFile, "picoDst");
 
@@ -113,7 +114,7 @@ void runD0JetSim_Neil(const Char_t *inputFile = "",
     /**/HIOverlayMaker->setFRunBadlist(1); //0 - 2014 Hanseul's //1 - 2014 Neil's //JetInfo.h
  
     // -------------- MC events ---------------------------
-    HIOverlayMaker->setAllMcSeedsToEventId(true); //True -> seed = eventId+runId
+    HIOverlayMaker->setAllMcSeedsToEventId(false); //True -> seed = eventId+runId //SEED
     
     // -------------- Event cuts -------------------------
     HIOverlayMaker->SetEventZVtxRange(-6, 6); //z vertex cut
@@ -179,14 +180,14 @@ void runD0JetSim_Neil(const Char_t *inputFile = "",
 
 
     //Strategy for jet background subtraction
-    HIOverlayMaker->SetBgSubtraction(12); //1 - Area based method + jet shape method // 2 - ICS // 12 or 21 - both
+    HIOverlayMaker->SetBgSubtraction(1); //1 - Area based method + jet shape method // 2 - ICS // 12 or 21 - both
     /**/HIOverlayMaker->setJetNHardestSkipped(2, 2); // First: 0-10%; Second: 10-80%
     //Set alphas and massive for background
     /**/HIOverlayMaker->setPeriphOccupancyFactor(false); //Occupancy factor for rho (only 40-80%)
     HIOverlayMaker->SetPhiBgModulation(false);
    
     //Fastjet
-    HIOverlayMaker->setJetFixedSeed(true, 12345); // false = random seed, true =
+    HIOverlayMaker->setJetFixedSeed(false, 12345); // false = random seed, true = //SEED
 
     //ICS
     std::vector<Double_t> maxDeltaRs;
@@ -259,13 +260,14 @@ void LoadLibs()
 {
     // load fastjet libraries 3.x
     // gSystem->Load("libCGAL"); - not installed
-    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alex_install/install/fastjet-install/lib/libfastjet");
-    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alex_install/install/fastjet-install/lib/libsiscone");
-    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alex_install/install/fastjet-install/lib/libsiscone_spherical");
-    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alex_install/install/fastjet-install/lib/libfastjetplugins");
-    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alex_install/install/fastjet-install/lib/libfastjettools");
-    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alex_install/install/fastjet-install/lib/libfastjetcontribfragile");
-
+    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alma9FastJet/fastjet-install/lib/libfastjet");
+    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alma9FastJet/fastjet-install/lib/libsiscone");
+    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alma9FastJet/fastjet-install/lib/libsiscone_spherical");
+    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alma9FastJet/fastjet-install/lib/libfastjetplugins");
+    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alma9FastJet/fastjet-install/lib/libfastjettools");
+    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alma9FastJet/fastjet-install/lib/libfastjetcontribfragile");
+    
+   
     // add include path to use its functionality
     //gSystem->AddIncludePath("-I/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alex_install/install/fastjet-install/include");
 
