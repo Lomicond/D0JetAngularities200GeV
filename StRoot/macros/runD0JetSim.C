@@ -260,12 +260,12 @@ void LoadLibs()
 {
     // load fastjet libraries 3.x
     // gSystem->Load("libCGAL"); - not installed
-    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alex_install/install/fastjet-install/lib/libfastjet");
-    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alex_install/install/fastjet-install/lib/libsiscone");
-    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alex_install/install/fastjet-install/lib/libsiscone_spherical");
-    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alex_install/install/fastjet-install/lib/libfastjetplugins");
-    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alex_install/install/fastjet-install/lib/libfastjettools");
-    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alex_install/install/fastjet-install/lib/libfastjetcontribfragile");
+    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alma9FastJet/fastjet-install/lib/libfastjet");
+    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alma9FastJet/fastjet-install/lib/libsiscone");
+    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alma9FastJet/fastjet-install/lib/libsiscone_spherical");
+    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alma9FastJet/fastjet-install/lib/libfastjetplugins");
+    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alma9FastJet/fastjet-install/lib/libfastjettools");
+    gSystem->Load("/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alma9FastJet/fastjet-install/lib/libfastjetcontribfragile");
 
     // add include path to use its functionality
     //gSystem->AddIncludePath("-I/gpfs01/star/pwg/lomicond/Ondrej/Jets/Alex_install/install/fastjet-install/include");

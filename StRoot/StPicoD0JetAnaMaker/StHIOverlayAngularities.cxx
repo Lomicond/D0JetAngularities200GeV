@@ -1041,6 +1041,9 @@ Int_t StHIOverlayAngularities::Make()
   //Checking vzVpdVz
   if (abs(zVtx - zVtx_VPD) > fEventVtxVpdVzMaxCut) return kStOk;
   
+  //Checking max pT
+  eventMaxPtTrack = GetMaxTrackPt();
+  
   //Filling events histograms
   hVtxZ->Fill(zVtx);
   hVtxR->Fill(mVertex.x(),mVertex.y());
@@ -2926,10 +2929,11 @@ void StHIOverlayAngularities::OutputTreeInit()
 	  outputTree->Branch("Q_1VecRec", &fRecoJetTree.Q1_vec_rec, "Q_1VecRec/F");
 	  outputTree->Branch("Q_2VecRec", &fRecoJetTree.Q2_vec_rec, "Q_2VecRec/F");
   }
-  
+  outputTree->Branch("eventMaxPtTrack", &fRecoJetTree.eventMaxPtTrack, "eventMaxPtTrack/F");
   
   outputTree->Branch("mcRefMult", &fMcJetTree.refmult, "mcrefmult/F");
   outputTree->Branch("mcRecoRefMult", &fMcJetTree.grefmult, "recorefmult/F");
+
   
   // outputTree->Branch("McPrimaryVertex", &fMcJetTree.primaryvertex);
   // outputTree->Branch("RecoPrimaryVertex", &fRecoJetTree.primaryvertex);
@@ -3047,6 +3051,7 @@ void StHIOverlayAngularities::FillTree(const Int_t &numberOfD0Events)
     fRecoJetTree.centralityAlt = fCentralityAlt;
     ////fRecoJetTree.weight = mCentMaker->GetWeight();
     fRecoJetTree.weight = fCentralityWeight;
+    fRecoJetTree.eventMaxPtTrack = eventMaxPtTrack;
     TVector3 mcPion = fMcD0Information[iMcD0Event].first;
     TVector3 mcKaon = fMcD0Information[iMcD0Event].second;
 
@@ -3282,4 +3287,45 @@ void StHIOverlayAngularities::FillJet(StJet *jet, StJetTreeStruct &jetTree, cons
   
   
   //delete jet;
+}
+
+Double_t StHIOverlayAngularities::GetMaxTrackPt()
+{
+  // get # of tracks
+  int nTrack = mPicoDst->numberOfTracks();
+  double fMaxTrackPt = -99;
+
+  // loop over all tracks
+  for(int i = 0; i < nTrack; i++) {
+    // get track pointer
+    StPicoTrack *track = static_cast<StPicoTrack*>(mPicoDst->track(i));
+    if(!track) { continue; }
+
+    // apply standard track cuts - (can apply more restrictive cuts below)
+    if(!(IsAcceptedTrack(track, Bfield, mVertex))) { continue; }
+    
+    //DCA cut
+    double dca = track->gDCA(mVertex).Mag();
+    if(dca > fJetTrackDCAcut) continue;
+
+    // primary track switch: get momentum vector of track - global or primary track
+    TVector3 mTrkMom;
+    if(doUsePrimTracks) {
+      // get primary track vector
+      mTrkMom = track->pMom();
+    } else {
+      // get global track vector
+      mTrkMom = track->gMom(mVertex, Bfield);
+    }
+
+	
+
+    // track variables
+    double pt = mTrkMom.Perp();
+
+    // get max track
+    if(pt > fMaxTrackPt) { fMaxTrackPt = pt; }
+  }
+
+  return fMaxTrackPt;
 }

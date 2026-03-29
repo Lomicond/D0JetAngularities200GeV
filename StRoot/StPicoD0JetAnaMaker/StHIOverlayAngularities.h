@@ -110,6 +110,7 @@ protected:
   Double_t fEventRVtxMaxCut;
   Double_t fEventVtxVpdVzMaxCut;
   std::set<Int_t> fEventTriggers;
+  Double_t eventMaxPtTrack;
 
   // MC
   Bool_t fSetMcSeed = false;
@@ -473,6 +474,7 @@ public:
   void ReadTreeMc();
   void FillTree(const Int_t &numberOfD0Events);
   void FillJet(StJet *jet, StJetTreeStruct &jetTree, const TVector3 &D0);
+  Double_t GetMaxTrackPt();
   void OutputTreeInit();
 
   virtual Double_t GetTowerCalibEnergy(Int_t TowerId);

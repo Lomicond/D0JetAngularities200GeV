@@ -29,6 +29,7 @@ struct StJetTreeStruct
     float refcorr2;
     float mcrefmult;
     float weight;
+    float eventMaxPtTrack;
     vector<unsigned int> triggers;
     vector<double> primaryvertex;
     vector<double> primaryvertexerror;
@@ -184,7 +185,7 @@ struct StJetTreeStruct
         corrPsi2 = -999;
         Q1_vec = -999;
         Q2_vec = -999;
-        
+        eventMaxPtTrack = -999;
         shapeAlpha11 = -999;
 
         //Parama
