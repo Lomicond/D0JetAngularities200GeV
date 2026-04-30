@@ -364,6 +364,7 @@ Int_t StPicoD0JetAnaMaker::Init(){
 	cout << "Other cuts in StCuts.cxx" << endl;
 	cout << "----------------------------" << endl;
 	cout << "D0 cuts" << endl;
+	cout << "Cuts: " << (mCut == 0 ? "standard" : mCut == 1 ? "tight" : mCut == 2 ? "loose" : "weird") << endl;
 	cout << fD0PTMin << " <= D0 pT <= " <<fD0PTMax << endl;
 	cout << fD0MassMin << " <= D0 mass <= " <<fD0MassMax << endl;
 	cout << (fUseD0Eta  == true ? Form("abs(eta) < %.1f",fD0Eta) : fUseD0Eta  == false ? "D0 eta cut not applied" : "Weird") << endl;
@@ -893,7 +894,7 @@ Int_t StPicoD0JetAnaMaker::Make() {
 		  if(fUseD0Eta && (abs(kaonPion.eta()) >= fD0Eta)) continue;
 
 		  //Check if all pair cuts conditions are met
-		  if((charge=isD0PairCentrality_pt(kaonPion,centrality, mYear))!=0 ){
+		  if((charge=isD0PairCentrality_pt(kaonPion,centrality, mYear, mCut))!=0 ){
         //Charge = -1 -> Unlike-sign (pi+K- or pi-K+), Charge = 1 -> Like-sign (pi+K+), Charge = 2 -> Like-sign (pi-K-)
 
         //If pair is Unlike-sign
@@ -1438,8 +1439,9 @@ Bool_t StPicoD0JetAnaMaker::IsBadEnergyRun(Int_t runID) {
 
 
 //---------------------------------------------------------------------------
-Int_t StPicoD0JetAnaMaker::isD0PairCentrality_pt(StKaonPion const & kp, Int_t Centrality, Int_t mYear) const{
+Int_t StPicoD0JetAnaMaker::isD0PairCentrality_pt(StKaonPion const & kp, Int_t Centrality, Int_t mYear, Int_t cut) const{
     //Check if the pair passes the cuts for D0
+    //cut = 0 standard; = 1 tight; = 2 loose;
 
     //Loading the daughter particles tracks
     StPicoTrack const* kaon = picoDst->track(kp.kaonIdx());
@@ -1465,9 +1467,9 @@ Int_t StPicoD0JetAnaMaker::isD0PairCentrality_pt(StKaonPion const & kp, Int_t Ce
     //Check if the pair passes the particular cuts
     //Parameters are saved in StCuts.cxx
     if (mYear == 2014){
-        pairCuts =  sin(kp.pointingAngle())*kp.decayLength() < mycuts::DCA_D0_cut_2014[KPMom][Centrality2] &&
-                    kp.pionDca() > mycuts::pionDCA_cut_2014[KPMom][Centrality2] && kp.kaonDca() > mycuts::kaonDCA_cut_2014[KPMom][Centrality2] &&
-                    kp.dcaDaughters() < mycuts::pionkaonDCA_cut_2014[KPMom][Centrality2] && kp.decayLength()> mycuts::D0_decayLength_cut_2014[KPMom][Centrality2] &&
+        pairCuts =  sin(kp.pointingAngle())*kp.decayLength() < mycuts::DCA_D0_cut_2014[cut][KPMom][Centrality2] &&
+                    kp.pionDca() > mycuts::pionDCA_cut_2014[cut][KPMom][Centrality2] && kp.kaonDca() > mycuts::kaonDCA_cut_2014[cut][KPMom][Centrality2] &&
+                    kp.dcaDaughters() < mycuts::pionkaonDCA_cut_2014[cut][KPMom][Centrality2] && kp.decayLength()> mycuts::D0_decayLength_cut_2014[cut][KPMom][Centrality2] &&
                     cos(kp.pointingAngle()) > mycuts::cosTheta_2014;
     } else if (mYear == 2016){
         pairCuts =  sin(kp.pointingAngle())*kp.decayLength() < mycuts::DCA_D0_cut_2016[KPMom][Centrality2] &&

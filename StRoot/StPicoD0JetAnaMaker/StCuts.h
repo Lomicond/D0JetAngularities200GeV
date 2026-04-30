@@ -101,11 +101,11 @@ namespace mycuts
    extern float const corDetaMin;
    extern float const corDetaMax;
 
-   extern float const pionDCA_cut_2014[6][5];
-   extern float const kaonDCA_cut_2014[6][5];
-   extern float const DCA_D0_cut_2014[6][5];
-   extern float const D0_decayLength_cut_2014[6][5];
-   extern float const pionkaonDCA_cut_2014[6][5];
+   extern float const pionDCA_cut_2014[3][6][5];
+   extern float const kaonDCA_cut_2014[3][6][5];
+   extern float const DCA_D0_cut_2014[3][6][5];
+   extern float const D0_decayLength_cut_2014[3][6][5];
+   extern float const pionkaonDCA_cut_2014[3][6][5];
 
    extern float const pionDCA_cut_2016[6][5];
    extern float const kaonDCA_cut_2016[6][5];

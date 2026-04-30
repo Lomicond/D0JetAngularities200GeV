@@ -117,6 +117,7 @@ class StPicoD0JetAnaMaker : public StMaker{
         void setFEventCut_vR(Double_t tmpVR);
         void setFEventCut_vZ(Double_t tmpVZ);
         void setFEventCut_vZVpdVZ(Double_t tmpVZVpdVZ);
+        void setD0Cuts(Int_t tmpCut);
         void setFDaughterTrackEta(Double_t tmpDaughterTrackEta);
         void setFDaughterTrackMinPT(Double_t tmpDaughterTrackMinPT);
         void setFDaughterTrackNHitsFit(Double_t tmpDaughterTrackNHitsFit);    
@@ -154,7 +155,7 @@ class StPicoD0JetAnaMaker : public StMaker{
     private:
 
         StPicoD0JetAnaMaker() {}
-        Int_t isD0PairCentrality_pt(StKaonPion const & kp, Int_t Centrality, Int_t mYear) const;
+        Int_t isD0PairCentrality_pt(StKaonPion const & kp, Int_t Centrality, Int_t mYear, Int_t cut) const;
         Bool_t isGoodEvent(Int_t mYear, TH1D* hEventsCuts);
         Bool_t isMBTrigger(Int_t mYear);
         Bool_t isGoodTrack(StPicoTrack const*) const;
@@ -189,6 +190,9 @@ class StPicoD0JetAnaMaker : public StMaker{
         Float_t	fAngul12;
         Float_t	fAngul13;
         Float_t	fAngulDisp;
+        
+        //Variations
+	Int_t mCut;
 
         //D0 meson
         Int_t d0PdgSign;
@@ -411,6 +415,10 @@ inline void StPicoD0JetAnaMaker::setFEventCut_vR(Double_t tmpVR){
 
 inline void StPicoD0JetAnaMaker::setFEventCut_vZVpdVZ(Double_t tmpVZVpdVZ){
     fEventCut_vZVpdVZ = tmpVZVpdVZ;
+}
+
+inline void StPicoD0JetAnaMaker::setD0Cuts(Int_t tmpCut){
+    mCut = tmpCut;
 }
 
 inline void StPicoD0JetAnaMaker::setFEventCut_triggers(const std::set<Int_t>& tmpEventTriggers){

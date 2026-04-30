@@ -137,6 +137,7 @@ void runD0JetAna_Neil(string pico="testPico.list",
    //Rest in StCuts.cxx   
    
    // ---------------D0 cuts-----------------------------
+   picoD0JetAnaMaker->setD0Cuts(0); // 0 - standard, 1 - tight, 2 - loose
    picoD0JetAnaMaker->setD0PTRange(0,10); // <= p_{T}^{D^0} [GeV/c] <=
    picoD0JetAnaMaker->setD0MassRange(1.7,2.1); // <= m^{D^0} [GeV/c^2] <=
    picoD0JetAnaMaker->setD0Eta(false, 1); //true = used eta cut: abs(eta) <; false = not used
