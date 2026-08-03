@@ -1296,8 +1296,8 @@ Int_t StHIOverlayAngularities::Make()
           Lambda, Eta, Sigma0, Xi0, Muon, Neutrino, KS0, KL0
         */
         if (McTrack_mGePid[iMcTrack] == 4 || McTrack_mGePid[iMcTrack] == 5 || // 4 - neutrinos, 5 - mu+
-            McTrack_mGePid[iMcTrack] == 6 || McTrack_mGePid[iMcTrack] == 10 || // 6 mu-, 10 - K short
-            McTrack_mGePid[iMcTrack] == 16 || McTrack_mGePid[iMcTrack] == 17 || // 16 - K long, 17 - eta
+            McTrack_mGePid[iMcTrack] == 6 || McTrack_mGePid[iMcTrack] == 10 || // 6 mu-, 10 - K long
+            McTrack_mGePid[iMcTrack] == 16 || McTrack_mGePid[iMcTrack] == 17 || // 16 - K short, 17 - eta
             McTrack_mGePid[iMcTrack] == 18 || McTrack_mGePid[iMcTrack] == 20 || // 18 - Lambda, 20 - Sigma0
             McTrack_mGePid[iMcTrack] == 22 || McTrack_mGePid[iMcTrack] == 26 || // 22 - Xi0, 26 - antiLambda
             McTrack_mGePid[iMcTrack] == 28 || McTrack_mGePid[iMcTrack] == 30) // 28 - antiSigma0, 30 - antiXi0

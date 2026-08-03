@@ -131,6 +131,8 @@ public:
     const double sumPt2 = comp[0];
     const double jetPt  = comp[1];
 
+    if (!std::isfinite(sumPt2) || !std::isfinite(jetPt)) return -999.0;
+
     if (sumPt2 < 0.0) return -999.0;
     if (jetPt <= 0.0) return -999.0;
 
