@@ -18,6 +18,7 @@
 // jet includes
 #include "FJ_includes.h"
 #include "StFJAngularityDefinition.h"
+#include "StFJAngularityComponents.h"
 
 using namespace std;
 #include "fastjet/FunctionOfPseudoJet.hh"
@@ -849,12 +850,21 @@ Int_t StFJWrapper::runAreaBgAndAreaShapeMethod(){
   //--- Jet Shapes Calculation ---
 
 	//kappa,alfa,jet_R
+  /*
 	Angularity my_angularity_10half(  1,  0.5,  fR);
 	Angularity my_angularity_11(      1,  1,    fR);
 	Angularity my_angularity_11half(  1,  1.5,  fR);
 	Angularity my_angularity_12(      1,  2,    fR);
 	Angularity my_angularity_13(      1,  3,    fR);
 	Angularity my_angularity_Disp(    2,  0,    fR);
+  */
+  // Shapes defined through separately subtractable components.
+  AngularityKappa1Components my_angularity_10half(0.5, fR);
+  AngularityKappa1Components my_angularity_11(1.0, fR);
+  AngularityKappa1Components my_angularity_11half(1.5, fR);
+  AngularityKappa1Components my_angularity_12(2.0, fR);
+  AngularityKappa1Components my_angularity_13(3.0, fR);
+  MomentumDispersionComponents my_angularity_Disp;
 	
 	fastjet::FunctionOfPseudoJet<Double_t>* shape10half = &my_angularity_10half;
 	fastjet::FunctionOfPseudoJet<Double_t>* shape11 = &my_angularity_11;
@@ -893,7 +903,8 @@ Int_t StFJWrapper::runAreaBgAndAreaShapeMethod(){
       fAngul11half = gensub(*shape11half, jet, info);
       fAngul12 = gensub(*shape12, jet, info);
       fAngul13 = gensub(*shape13, jet, info);
-      fAngulDisp = sqrt(gensub(*shapeDisp, jet, info));
+      //fAngulDisp = sqrt(gensub(*shapeDisp, jet, info));
+      fAngulDisp = gensub(*shapeDisp, jet, info); //Component approach returns the sqrt(...)
     
     } 
       

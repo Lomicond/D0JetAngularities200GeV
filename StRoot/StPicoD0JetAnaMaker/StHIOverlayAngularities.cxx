@@ -1291,15 +1291,16 @@ Int_t StHIOverlayAngularities::Make()
         }
         
         
-        // Unstable particles which shouldn't make it to the end are discarded by hand. The list provisionally includes:
+        // Unstable particles (neutrinos??? Muons????) which shouldn't make it to the end are discarded by hand. The list provisionally includes:
         /*
           Lambda, Eta, Sigma0, Xi0, Muon, Neutrino, KS0, KL0
         */
-        if (McTrack_mGePid[iMcTrack] == 4 || McTrack_mGePid[iMcTrack] == 5 ||
-            McTrack_mGePid[iMcTrack] == 6 || McTrack_mGePid[iMcTrack] == 10 ||
-            McTrack_mGePid[iMcTrack] == 16 || McTrack_mGePid[iMcTrack] == 17 ||
-            McTrack_mGePid[iMcTrack] == 18 || McTrack_mGePid[iMcTrack] == 20 ||
-            McTrack_mGePid[iMcTrack] == 22)
+        if (McTrack_mGePid[iMcTrack] == 4 || McTrack_mGePid[iMcTrack] == 5 || // 4 - neutrinos, 5 - mu+
+            McTrack_mGePid[iMcTrack] == 6 || McTrack_mGePid[iMcTrack] == 10 || // 6 mu-, 10 - K short
+            McTrack_mGePid[iMcTrack] == 16 || McTrack_mGePid[iMcTrack] == 17 || // 16 - K long, 17 - eta
+            McTrack_mGePid[iMcTrack] == 18 || McTrack_mGePid[iMcTrack] == 20 || // 18 - Lambda, 20 - Sigma0
+            McTrack_mGePid[iMcTrack] == 22 || McTrack_mGePid[iMcTrack] == 26 || // 22 - Xi0, 26 - antiLambda
+            McTrack_mGePid[iMcTrack] == 28 || McTrack_mGePid[iMcTrack] == 30) // 28 - antiSigma0, 30 - antiXi0
           continue;
 
         // Have to discard Kaons and Pions which come from the Current D0

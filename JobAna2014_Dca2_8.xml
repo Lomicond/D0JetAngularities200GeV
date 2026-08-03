@@ -29,7 +29,7 @@
 
 	<ResourceUsage>
 		<Memory>
-			<MinMemory>4000</MinMemory>
+			<MinMemory>8000</MinMemory>
 			<!-- <MaxMemory>2000</MaxMemory> -->
 		</Memory>
 	</ResourceUsage>
