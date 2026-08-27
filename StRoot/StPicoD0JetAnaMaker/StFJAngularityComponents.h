@@ -76,7 +76,9 @@ public:
     const double numerator   = comp[0];
     const double denominator = comp[1];
 
-    if (denominator <= 0.0) return -999.0;
+    if (!std::isfinite(numerator) || !std::isfinite(denominator)) return -999.0;
+
+    if (std::fabs(denominator) < 0.0001) return -999.0;
 
     return numerator / denominator;
   }
@@ -120,7 +122,7 @@ public:
       sumPt2 += pt_i * pt_i;
     }
 
-    comp[0] = sumPt2;
+    comp[0] = std::sqrt(sumPt2);
     comp[1] = jet.pt();
 
     return comp;
@@ -128,40 +130,15 @@ public:
 
   virtual double result_from_components(const std::vector<double> &comp) const
   {
-    const double sumPt2 = comp[0];
+    const double sqrtSumPt2 = comp[0];
     const double jetPt  = comp[1];
 
-    if (!std::isfinite(sumPt2) || !std::isfinite(jetPt)) return -999.0;
+    if (!std::isfinite(sqrtSumPt2) || !std::isfinite(jetPt)) return -999.0;
 
-    if (sumPt2 < 0.0) return -999.0;
-    if (jetPt <= 0.0) return -999.0;
+    if (std::fabs(jetPt) < 0.0001) return -999.0;
 
-    return std::sqrt(sumPt2) / jetPt;
+    return sqrtSumPt2 / jetPt;
   }
-
-/*
-virtual double result_from_components(const std::vector<double> &comp) const
-{
-  const double sumPt2 = comp[0];
-  const double jetPt  = comp[1];
-
-  if (!std::isfinite(sumPt2) || !std::isfinite(jetPt))
-    return -999.0;
-
-  // The normalized observable is undefined for a zero denominator.
-  if (jetPt == 0.0)
-    return -999.0;
-
-  const double signedPtd =
-      std::copysign(std::sqrt(std::abs(sumPt2)), sumPt2)
-      / std::abs(jetPt);
-
-  if (!std::isfinite(signedPtd))
-    return -999.0;
-
-  return signedPtd;
-}
-*/
 
 };
 

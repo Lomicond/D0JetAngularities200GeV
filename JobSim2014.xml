@@ -1,7 +1,7 @@
 <job  name="D0JetAnalysis" minFilesPerProcess="6" maxFilesPerProcess="8" fileListSyntax="xrootd" simulateSubmission ="false" >
 	
 <!--<input URL="catalog:star.bnl.gov?production=P16ij,trgsetupname=AuAu_200_production_2016,filename~st_physics,filetype=daq_reco_picoDst,library=SL20c,runnumber[]17062049-17179012,storage!=hpss" preferStorage="local" singleCopy="true" nFiles="5000" /> -->
- <input URL="filelist:/gpfs01/star/pwg/lomicond/Ondrej/Jets/D0JetAngularities/eventLists/Run2014LowMid_shuffled.list" nFiles="6000" />
+ <input URL="filelist:/gpfs01/star/pwg/lomicond/Ondrej/Jets/D0JetAngularities/eventLists/Run2014LowMid_shuffled.list" nFiles="5000" />
 <!--<input URL="catalog:star.bnl.gov?production=P16id,trgsetupname=AuAu_200_production_mid_2014||AuAu_200_production_low_2014,filename~st_physics,filetype=daq_reco_picoDst,library=SL22c,runnumber[]15107008-16167014,storage!=hpss" preferStorage="local" singleCopy="true" nFiles="2500" /> -->
 <!--<input URL="catalog:star.bnl.gov?production=P16id,trgsetupname=AuAu_200_production_low_2014,filename~st_physics,filetype=daq_reco_picoDst,library=SL22c,runnumber[]15107008-16167014,storage!=hpss" preferStorage="local" singleCopy="true" nFiles="2000" />-->
 <stdout URL="file:/gpfs01/star/pwg/lomicond/Ondrej/Jets/D0JetAngularities/out/$JOBID.out" />
@@ -26,7 +26,7 @@
 
 	shuf -n 50 ${MCFILENAME} &gt; ${JOBID}_${JOBINDEX}_MC.list
 	cp `cat ${JOBID}_${JOBINDEX}_MC.list` .
-	ls rcf*.root &gt; ${JOBID}_${JOBINDEX}_MC_Complete.list
+	ls D0Standalone*.root &gt; ${JOBID}_${JOBINDEX}_MC_Complete.list <!-- Do not forget to change this line even in the others xml files!-->
 
 	root4star -l -b -q runD0JetSim.C\(\&quot;$FILELIST\&quot;,\&quot;${JOBID}_${JOBINDEX}_MC_Complete.list\&quot;,\&quot;MC_2014_MidLow_${JOBINDEX}\&quot;,100000000,false\) &gt; MC_2014_MidLow_${JOBINDEX}.log
 	date

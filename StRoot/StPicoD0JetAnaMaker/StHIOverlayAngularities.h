@@ -258,7 +258,6 @@ public:
     fJetMinAbsEtaCut = jetMinAbsEtaCut;
   } // !!!TODO
 
-
   virtual void setPeriphOccupancyFactor(Bool_t tmpPeriphOccupancyFactor){
 	fPeriphOccupancyFactor = tmpPeriphOccupancyFactor;
   }
@@ -364,6 +363,11 @@ public:
   static const Int_t kMaxMcVertex = 6000;
   static const Int_t kMaxMcTrack = 6000;
 
+
+
+  //Int_t previousPedestalRun = -1;
+
+
   TTree *fMCPico;
   // Declaration of leaf types
   Int_t Event_;
@@ -394,6 +398,7 @@ public:
 
   Int_t BTowHit_;
   Short_t BTowHit_mE[kMaxBTowHit]; // [BTowHit_]
+  Short_t BTowHit_mAdc[kMaxBTowHit]; // [BTowHit_]
 
   Int_t McVertex_;
   Int_t McVertex_mId[kMaxMcVertex];             // [McVertex_]
@@ -447,6 +452,7 @@ public:
 
   TBranch *b_BTowHit_;   //!
   TBranch *b_BTowHit_mE; //!
+  TBranch *b_BTowHit_mAdc; //!
 
   TBranch *b_McVertex_;             //!
   TBranch *b_McVertex_mId;          //!
@@ -478,8 +484,22 @@ public:
   void OutputTreeInit();
 
   virtual Double_t GetTowerCalibEnergy(Int_t TowerId);
+  virtual Double_t GetTowerCalibEnergy2(Int_t TowerId, Double_t adc);
+
+  Bool_t LoadMcTowerPedestals();
+
+  Double_t GetMcTowerCalibEnergy(
+      Int_t towerId,
+      Double_t adc
+  ) const;
+
   StEmcADCtoEMaker *mADCtoEMaker;
   StBemcTables *mTables;
+
+  Int_t fMcRunNumber;                       //!
+  UInt_t fMcEventTime;                      //!
+  Bool_t fMcPedestalsLoaded;                //!
+  Float_t fMcTowerPedestal[kMaxBTowHit];    //!
 
   void GetAllTracksFromVertex(const Int_t &vertexid, vector<Int_t> &trackvec);
   StJet *DoesItHaveAGoodD0Jet(vector<TLorentzVector> &eventTracks, Int_t recoLevel, Int_t bgSubtraction);
@@ -540,6 +560,8 @@ public:
   static const Int_t kMaxNumberOfD0Events = 100;
   vector<TLorentzVector> fMcEventTracks[kMaxNumberOfD0Events];      // For charged particles
   vector<TLorentzVector> fMcEventTowers[kMaxNumberOfD0Events];      // For neutral particles
+  Double_t realResidual[kMaxNumberOfD0Events][kMaxBTowHit];
+  Double_t mcResidual[kMaxNumberOfD0Events][kMaxBTowHit];
   vector<TLorentzVector> fRecoMcEventTracks[kMaxNumberOfD0Events];  // For charged tracks
   vector<TLorentzVector> fRecoMcEventTowers[kMaxNumberOfD0Events];  // For neutral towers
   pair<TVector3, TVector3> fMcD0Information[kMaxNumberOfD0Events];     // Pion momenta, Kaon momenta
@@ -555,8 +577,11 @@ public:
 
   vector<fastjet::PseudoJet> All_fjinput; //! jet input vectors
   vector<fastjet::PseudoJet> fFull_Event; //! jet input vectors
+  vector<fastjet::PseudoJet> fBackground_Event; //! jet input vectors
 
   TTree *outputTree;
+
+  TH1D *hCrossHCTransferE;
 
   // Event histograms:
   TH1D* hVtxZ;
@@ -567,6 +592,7 @@ public:
 
   // MC event
   TH2D* hPureMcNeutralEtaPhi;
+  TH2D* hPureMcNeutralAdcEtaPhi;
   TH2D* hMcJetConstMom;
   TH2D* hMcJetConstTheta;
 

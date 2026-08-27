@@ -203,6 +203,14 @@ class StFJWrapper
     fSetJetFixedSeed = tmpSetJetFixedSeed;
 	  fJetFJSeed = tmpJetFJSeed;
   }
+  void SetBackgroundInputVectors(std::vector<fastjet::PseudoJet>& vecs){
+    fBackgroundInputVectors = vecs;
+    fHasBackgroundInputVectors = kTRUE;
+  }
+  void ResetBackgroundInputVectors(){
+    fBackgroundInputVectors.clear();
+    fHasBackgroundInputVectors = kFALSE;
+  }
   void SetupAlgorithmfromOpt(const char *option);
   void SetupAreaTypefromOpt(const char *option);
   void SetupSchemefromOpt(const char *option);
@@ -281,6 +289,8 @@ class StFJWrapper
   Int_t    				                       fJetNHardestSkipped_1080;
   Bool_t                  		           fSetJetFixedSeed;
   Int_t                                  fJetFJSeed;
+  std::vector<fastjet::PseudoJet>        fBackgroundInputVectors; //!
+  Bool_t                                 fHasBackgroundInputVectors;
 #ifdef FASTJET_VERSION
   fastjet::JetMedianBackgroundEstimator   *fBkrdEstimator;    //!
   //from contrib package
@@ -417,15 +427,32 @@ Double_t StFJWrapper::ComputeOccupancyC_fromJetsUsed(const fastjet::JetMedianBac
 //_________________________________________________________________________________________________
 std::vector<fastjet::PseudoJet> StFJWrapper::CreateInputRealOnly() const {
 
-    std::vector<fastjet::PseudoJet> inputRealOnly;
-    inputRealOnly.reserve(fInputVectors.size());
+    //std::vector<fastjet::PseudoJet> inputRealOnly;
+    const std::vector<fastjet::PseudoJet>& source = fHasBackgroundInputVectors ? fBackgroundInputVectors : fInputVectors;
 
+
+    //inputRealOnly.reserve(fInputVectors.size());
+    std::vector<fastjet::PseudoJet> inputRealOnly;
+    inputRealOnly.reserve(source.size());
+
+    /*
     for (const auto &pj : fInputVectors) {
       const int uid = pj.user_index();
       if (fSubtractMc && uid >= 10000)  continue;
       if (fSubtractMc && uid <= -10000) continue;
       inputRealOnly.push_back(pj);
     }
+    */
+
+    for (const auto& pj : source) {
+      const Int_t uid = pj.user_index();
+
+      if (fSubtractMc && uid >=  10000) continue;
+      if (fSubtractMc && uid <= -10000) continue;
+
+      inputRealOnly.push_back(pj);
+    }
+
 
     return inputRealOnly;
 }
@@ -525,6 +552,8 @@ StFJWrapper::StFJWrapper(const char *name, const char *title)
   , fSetJetFixedSeed   (kFALSE)
   , fJetFJSeed         (12345)
   , fEP_psi2(-999)
+  , fBackgroundInputVectors()
+  , fHasBackgroundInputVectors(kFALSE)
 #ifdef FASTJET_VERSION
   , fBkrdEstimator     (0)
   , fConstituentSubtractor (0)
@@ -590,6 +619,10 @@ void StFJWrapper::Clear(const Option_t */*opt*/) {
   fAngul12 = -999;
   fAngul13 = -999;
   fAngulDisp = -999;
+  
+  fBackgroundInputVectors.clear();
+  fHasBackgroundInputVectors = kFALSE;
+
 
   // for the moment brute force delete everything
   ClearMemory();

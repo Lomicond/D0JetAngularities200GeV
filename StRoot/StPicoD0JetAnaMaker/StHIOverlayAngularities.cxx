@@ -49,6 +49,10 @@
 #include "StEmcRawMaker/StBemcRaw.h"
 #include "StEmcRawMaker/defines.h"
 #include "StEmcRawMaker/StBemcTables.h"
+#include "StDbLib/StDbManager.hh"
+#include "StDbLib/StDbConfigNode.hh"
+#include "StDbLib/StDbTable.h"
+#include "tables/St_emcPed_Table.h"
 
 
 Double_t standardPhi(const Double_t &phi)
@@ -74,6 +78,9 @@ StHIOverlayAngularities::StHIOverlayAngularities(const char *name,
   if (!name) return;
   
   fRunNumber = 0;
+  fMcRunNumber = 0;
+  fMcEventTime = 0;
+  fMcPedestalsLoaded = kFALSE;
   mPicoDstMaker = 0x0;
   mPicoDst = 0x0;
   mPicoEvent = 0x0;
@@ -115,10 +122,19 @@ StHIOverlayAngularities::StHIOverlayAngularities(const char *name,
   fQ_2_rec = -999;
   fBgSubtraction = 1;
 
+  /*
   for (Int_t i = 0; i < 4800; i++) {
     for (Int_t j = 0; j < 7; j++)
       mTowerMatchTrkIndex[i][j] = -1;
     mTowerStatusArr[i] = 0;
+  }
+  */
+
+  for (Int_t i = 0; i < 4800; i++) {
+    for (Int_t j = 0; j < 7; j++) mTowerMatchTrkIndex[i][j] = -1;
+
+    mTowerStatusArr[i] = 0;
+    fMcTowerPedestal[i] = 0.0;
   }
 
   mBemcGeom = 0x0;
@@ -200,6 +216,7 @@ Int_t StHIOverlayAngularities::Init()
     return kStOk;
   }
 
+  /*
   string line;
   while (getline(filelistforMCEvents, line)) {
     TString s(line);
@@ -207,6 +224,27 @@ Int_t StHIOverlayAngularities::Init()
   }
 
   OutputTreeInit();
+  */
+  string line;
+
+while (getline(filelistforMCEvents, line)) {
+  TString s(line);
+  filenamesforHIOverlay.push_back(s);
+}
+
+if (filenamesforHIOverlay.empty()) {
+  LOG_ERROR << "MC file list is empty: " << fMCFileListName << endm;
+
+  return kStErr;
+}
+
+if (fSetTowerCalibrEnergy && !LoadMcTowerPedestals()) {
+  LOG_ERROR << "Cannot initialize BEMC pedestals for MC towers" << endm;
+
+  return kStErr;
+}
+
+OutputTreeInit();
 
   // ======================== Event histograms ========================
   hVtxZ    = new TH1D("hVtxZ",    ";PVtx.z() [cm]; Count", 100, -10, 10);
@@ -224,6 +262,9 @@ Int_t StHIOverlayAngularities::Init()
     100, 0, 40, 300, 0, TMath::Pi());
   hPureMcNeutralEtaPhi = new TH2D("hPureMcNeutralEtaPhi", 
     "Neutral particles from MC w/o bad tower cut #eta vs #phi;#phi;#eta", 
+    120, -TMath::Pi(), TMath::Pi(), 100, -1.1, 1.1);
+  hPureMcNeutralAdcEtaPhi = new TH2D("hPureMcNeutralAdcEtaPhi", 
+    "Neutral particles ADC from MC w/o bad tower cut #eta vs #phi;#phi;#eta", 
     120, -TMath::Pi(), TMath::Pi(), 100, -1.1, 1.1);
 
   // ======================== Jet constituents histograms ========================
@@ -330,6 +371,7 @@ Int_t StHIOverlayAngularities::Init()
     "Hadron. corr. track #eta vs p_{T};p_{T} [GeV/c];#eta", 200, 0, 40, 150, -1.5, 1.5);
   hJetHadrCorrE = new TH1D("hJetHadrCorrE", 
     "Hadron. corr. track energy;E [GeV];Count", 200, 0, 40);
+  hCrossHCTransferE = new TH1D("hCrossHCTransferE", "Cross-hadronic-correction energy transfer;signed transferred E (GeV);weighted towers", 401, -10.025, 10.025); 
 
   // ======================== Response matrix histograms ========================
   hResponseJetPt = new TH2D("hResponseJetPt", 
@@ -698,6 +740,7 @@ Int_t StHIOverlayAngularities::Finish()
     TDirectory* dirMcEvent = fout->mkdir("mcEvent");
     dirMcEvent->cd();
     hPureMcNeutralEtaPhi->Write();
+    hPureMcNeutralAdcEtaPhi->Write();
     hMcJetConstMom->Write();
     hMcJetConstTheta->Write();
     fout->cd();
@@ -747,6 +790,7 @@ Int_t StHIOverlayAngularities::Finish()
     hJetHadrCorrNHitsFit->Write();
     hJetHadrCorrNHitsRatio->Write();
     hJetHadrCorrDcaZ->Write();
+    hCrossHCTransferE->Write();
     fout->cd();
 
     TDirectory* dirResponseMatrix = fout->mkdir("responseMatrix");
@@ -939,7 +983,51 @@ Int_t StHIOverlayAngularities::Make()
   }
   
   fRunNumber = mPicoEvent->runId();
-  
+
+/*
+if (fRunNumber != previousPedestalRun) {
+
+    previousPedestalRun = fRunNumber;
+
+    const Int_t towerIds[] = {
+        1102,
+        1103,
+        1109,
+        1110,
+        1123,
+        1126,
+        1129,
+        1130,
+        1133,
+        1136,
+        1144
+    };
+
+    const Int_t nTowers =
+        sizeof(towerIds) / sizeof(towerIds[0]);
+
+    cout << "PEDESTAL RUN " << fRunNumber;
+
+    for (Int_t i = 0; i < nTowers; i++) {
+
+        Float_t pedestal = 0.0;
+        Float_t rms = 0.0;
+
+        mTables->getPedestal(
+            BTOW,
+            towerIds[i],
+            0,
+            pedestal,
+            rms
+        );
+
+        cout << "\t" << towerIds[i]
+             << "=" << pedestal;
+    }
+
+    cout << endl;
+} else return kStOK;
+  */
   fMcSeed = 0; //0 = random
   if(fSetMcSeed) fMcSeed = fRunNumber + mPicoEvent->eventId();
   
@@ -1076,6 +1164,8 @@ Int_t StHIOverlayAngularities::Make()
     fOrigin[iD0Event].SetXYZ(0, 0, 0);
     fMcEventInfo[iD0Event] = {};
   }
+  memset(realResidual, 0, sizeof(realResidual));
+  memset(mcResidual, 0, sizeof(mcResidual));
   
     TRandom3 ran(fMcSeed);
     ran.SetSeed(fMcSeed); 
@@ -1343,6 +1433,7 @@ Int_t StHIOverlayAngularities::Make()
       fjw->SetPeriphOccupancyFactor(fPeriphOccupancyFactor);         
       fjw->setJetFixedSeed(fSetJetFixedSeed, fJetFJSeed);
       
+      
       // Loop over all saved particles for MC in vectors and enter them into fastjet wrapper
       for (UInt_t iTrack = 0; iTrack < fMcEventTracks[counterEvent].size(); iTrack++)
       {
@@ -1510,6 +1601,7 @@ Int_t StHIOverlayAngularities::Make()
   for (Int_t iMcD0Event = 0; iMcD0Event < counterEvent; iMcD0Event++){
   
     fFull_Event.clear();
+    fBackground_Event.clear();
     
       // RESET tower-track matching pro hadron corr 
     for (Int_t i = 0; i < 4800; i++){
@@ -1566,6 +1658,7 @@ Int_t StHIOverlayAngularities::Make()
           
         particle_Track.set_user_index(iTrack);
         fFull_Event.push_back(particle_Track);
+        fBackground_Event.push_back(particle_Track);
         
         //QA histograms
         hJetTracksPt->Fill(particle_Track.perp(),fCentralityWeight);
@@ -1624,7 +1717,7 @@ Int_t StHIOverlayAngularities::Make()
 
         //if (BadTowerMap[towerID-1]) continue; 
         if (fTowerBadlist == 0 && mycuts::BadTowerMap[towerID-1]) continue;
-	if (fTowerBadlist == 1 && mycuts::NeilBadTowers2014.count(towerID)) continue;
+	      if (fTowerBadlist == 1 && mycuts::NeilBadTowers2014.count(towerID)) continue;
  
         // cluster and tower position - from vertex and ID: shouldn't need additional eta correction
         //TVector3 towerPosition = mEmcPosition->getPosFromVertex(mVertex, towerID);
@@ -1642,30 +1735,32 @@ Int_t StHIOverlayAngularities::Make()
 
         Double_t towE = -999;
         //Calculate the tower energy
-        if(fSetTowerCalibrEnergy) towE = GetTowerCalibEnergy(towerID);
+        if(fSetTowerCalibrEnergy) towE = GetTowerCalibEnergy2(towerID, tower->adc());
         else towE = tower->energy(); 
         
         Double_t towEUncorr = tower->energy(); //energy w/o calibration
-	Double_t towerEunCorr = towE; // uncorrected energy
+	      Double_t towerEunCorr = towE; // uncorrected energy
         Double_t towerE = towE;       // corrected energy (hadronically - done below)
 
         // cut on min tower energy after filling histos
-        if (towerEunCorr < mTowerEnergyTMin) continue; // if we don't have enough E to start with, why mess around
+        ////if ((1.0*towerEunCorr / TMath::CosH(towerEta)) < mTowerEnergyTMin ) continue; // if we don't have enough E to start with, why mess around //test
 
-        if (towerEunCorr > fMaxTowerEtBeforeHC) fMaxTowerEtBeforeHC = towerEunCorr;
+        if ((1.0*towerEunCorr / TMath::CosH(towerEta) > fMaxTowerEtBeforeHC)) fMaxTowerEtBeforeHC = (1.0*towerEunCorr / TMath::CosH(towerEta));
 
 
         // =======================================================================
         // HADRONIC CORRECTION
         //Double_t maxEt = 0.;
         Double_t sumEt = 0.;
+        Double_t maxE = 0.0;
+        Double_t sumE = 0.0;
 
         // if tower was is matched to a track or multiple, add up the matched track energies - (mult opt.) to then subtract from the corresponding tower
         // August 15: if *have* 1+ matched trk-tow AND uncorrected energy of tower is at least your tower constituent cut, then CONTINUE
-        if (mTowerStatusArr[towerIndex] > 0.5 && towerEunCorr > mTowerEnergyTMin)
-        {
-          Double_t maxE = 0.0;
-          Double_t sumE = 0.0;
+        //if (mTowerStatusArr[towerIndex] > 0.5 && ((1.0*towerEunCorr / TMath::CosH(towerEta)) >= mTowerEnergyTMin )){
+        if (mTowerStatusArr[towerIndex] > 0.5 ){
+        
+
           // =======================================================================================================================
           // --- finds max E track matched to tower *AND* the sum of all matched track E and subtract from said tower
           //     USER provides readMacro.C which method to use for their analysis via SetJetHadCorrType(type);
@@ -1731,14 +1826,43 @@ Int_t StHIOverlayAngularities::Make()
                 // apply hadronic correction to tower
          // maxEt = (towerEunCorr - (mHadronicCorrFrac * maxE)) / (1.0 * TMath::CosH(towerEta));
           sumEt = (towerEunCorr - (mHadronicCorrFrac * sumE)) / (1.0 * TMath::CosH(towerEta));
+
           //=================================================================================================================
         } // have a track-tower match
         // else - no match so treat towers on their own. Must meet constituent cut
 
+        realResidual[iMcD0Event][towerIndex] = towerEunCorr - mHadronicCorrFrac * sumE;
+        
+        
+        //////////////////////////
+        // Real-only hadronically corrected tower for background estimation
+        // before applying the cross-correction with MC
+        //////////////////////////
+        const Double_t realEForBackground = TMath::Max(realResidual[iMcD0Event][towerIndex], 0.0);
+        const Double_t realEtForBackground = realEForBackground / TMath::CosH(towerEta);
+        
+        // add towers to fastjet - shift tower index (tracks 0+, ghosts = -1, towers < -1)
+        const Int_t uidTow = -(itow + 2);
+
+        if (realEtForBackground >= mTowerEnergyTMin) {
+            TVector3 backgroundMom;
+
+            if (GetMomentum(backgroundMom, tower, fNeutralPart, towerID, realEForBackground)) {
+
+              fastjet::PseudoJet backgroundTower(backgroundMom.x(), backgroundMom.y(), backgroundMom.z(), realEForBackground);
+
+              backgroundTower.set_user_index(uidTow);
+              fBackground_Event.push_back(backgroundTower);
+
+            }
+        }
+        //////////////////////////
+
         // Et - correction comparison
-        Double_t fSumEt = (sumEt == 0) ? towerEunCorr / (1.0 * TMath::CosH(towerEta)) : sumEt;
+        ////Double_t fSumEt = (sumEt == 0) ? towerEunCorr / (1.0 * TMath::CosH(towerEta)) : sumEt; //TODO
 
         // cut on transverse tower energy (more uniform)
+        /*
         Double_t towerEt = 0.0;
         if (mTowerStatusArr[towerIndex] < 1){
            // no matches, use towers uncorrected energy
@@ -1746,12 +1870,65 @@ Int_t StHIOverlayAngularities::Make()
         }
         else{
         
-	   towerEt = fSumEt;
-	   towerE = fSumEt * 1.0 * TMath::CosH(towerEta);
+	   towerEt = sumEt;
+	   towerE = sumEt * 1.0 * TMath::CosH(towerEta);
        
         }
+     */
 
-        if (towerEt < 0) towerEt = 0.0;
+       // if (towerEt < 0) towerEt = 0.0;
+
+
+        ///////////////////////////////////
+        Double_t &realE = realResidual[iMcD0Event][towerIndex];
+        Double_t &mcE   = mcResidual[iMcD0Event][towerIndex];
+
+        const Double_t realEBeforeCross = realE;
+        const Double_t mcEBeforeCross   = mcE;
+        Double_t signedTransfer = 0.0;
+
+        const Double_t combinedBefore = realE + mcE;
+
+        // Deficit real-data části se může odečíst od MC energie.
+        if (realE < 0.0 && mcE > 0.0) {
+          const Double_t transfer = TMath::Min(-realE, mcE);
+          signedTransfer = transfer;
+          realE += transfer;
+          mcE   -= transfer;
+        }
+        // Deficit MC části se může odečíst od real-data energie.
+        else if (mcE < 0.0 && realE > 0.0) {
+          const Double_t transfer = TMath::Min(-mcE, realE);
+          signedTransfer = -transfer;
+          mcE   += transfer;
+          realE -= transfer;
+        }
+
+        // Záporná reziduální energie už nemá fyzikální tower constituent.
+        if (realE < 0.0) realE = 0.0;
+        if (mcE   < 0.0) mcE   = 0.0;
+
+        if (TMath::Abs(realEBeforeCross) > 1e-12 || TMath::Abs(mcEBeforeCross)   > 1e-12) {hCrossHCTransferE->Fill(signedTransfer, fCentralityWeight);}
+        /////////////////////////////////////////
+
+        const Double_t combinedExpected =
+            TMath::Max(combinedBefore, 0.0);
+
+        const Double_t combinedAfter =
+            realE + mcE;
+        
+            if (TMath::Abs(combinedAfter - combinedExpected) > 1e-10) {
+              cerr << "Cross-HC energy mismatch:"
+                  << " tower=" << towerIndex
+                  << " before=" << combinedBefore
+                  << " expected=" << combinedExpected
+                  << " after=" << combinedAfter
+                  << endl;
+            }
+
+
+        towerE = realE;
+        Double_t towerEt = towerE / TMath::CosH(towerEta);
 
         if (towerEt < mTowerEnergyTMin) continue;
 
@@ -1766,23 +1943,21 @@ Int_t StHIOverlayAngularities::Make()
         Double_t towerPy = mom.y();
         Double_t towerPz = mom.z();
 
-        // add towers to fastjet - shift tower index (tracks 0+, ghosts = -1, towers < -1)
-        Int_t uidTow = -(itow + 2);
-
         //fjw->AddInputVector(towerPx, towerPy, towerPz, towerE, uidTow); // includes E
         ////cout << "input_particles.push_back({"<<towerPx<<","<<towerPy<<","<<towerPz<<","<<towerE<<"}); //neutral" << endl;
         fastjet::PseudoJet particle_Track(towerPx, towerPy, towerPz, towerE);
         particle_Track.set_user_index(uidTow);
         fFull_Event.push_back(particle_Track);
+        //fBackground_Event.push_back(particle_Track);
         
         hJetNeutralPt->Fill(particle_Track.perp(), fCentralityWeight);
-	hJetNeutralEtaPhi->Fill(particle_Track.phi_std(), particle_Track.eta(), fCentralityWeight);
-	hJetNeutralEtBefAftHC->Fill(towerEunCorr/ (1.0 * TMath::CosH(towerEta)), towerEt, fCentralityWeight);
-	hJetNeutralECalibBefAft->Fill(towEUncorr, towE, fCentralityWeight);
-	hJetConstCharge->Fill(0., fCentralityWeight);
-	hJetConstRapPhi->Fill(particle_Track.phi_std(),particle_Track.rap(), fCentralityWeight); 
-	hJetConstEtaPhi->Fill(particle_Track.phi_std(),particle_Track.eta(), fCentralityWeight); 
-	hJetConstPt->Fill(particle_Track.perp(),fCentralityWeight);
+        hJetNeutralEtaPhi->Fill(particle_Track.phi_std(), particle_Track.eta(), fCentralityWeight);
+        hJetNeutralEtBefAftHC->Fill(towerEunCorr/ (1.0 * TMath::CosH(towerEta)), towerEt, fCentralityWeight);
+        hJetNeutralECalibBefAft->Fill(towEUncorr, towE, fCentralityWeight);
+        hJetConstCharge->Fill(0., fCentralityWeight);
+        hJetConstRapPhi->Fill(particle_Track.phi_std(),particle_Track.rap(), fCentralityWeight); 
+        hJetConstEtaPhi->Fill(particle_Track.phi_std(),particle_Track.eta(), fCentralityWeight); 
+        hJetConstPt->Fill(particle_Track.perp(),fCentralityWeight);
       } // tower loop
 
     } // neutral/full jets
@@ -1814,32 +1989,74 @@ Int_t StHIOverlayAngularities::Make()
       fastjet::PseudoJet particle_Track(px, py, pz, energy);
       particle_Track.set_user_index(iMcTrack + 10000*d0Factor);
       fFull_Event.push_back(particle_Track);
-
+      fBackground_Event.push_back(particle_Track);
+      
       
     } 
 
     if (fJetType == kFullJet || (fJetType == kNeutralJet))
     {
-      for (UInt_t iTowers = 0; iTowers < fRecoMcEventTowers[iMcD0Event].size(); iTowers++)
-      {
+
+
+      /*
+      //Only for background
+      for (UInt_t iTowers = 0; iTowers < fRecoMcEventTowers[iMcD0Event].size(); iTowers++){
+        
         TLorentzVector v;
         v = fRecoMcEventTowers[iMcD0Event][iTowers];
         // tower variables
         Double_t px = v.X();
         Double_t py = v.Y();
         Double_t pz = v.Z();
-        Double_t p = v.P();
+        Double_t p = v.P(); //TO DO LIST
         Double_t energy = 1.0 * TMath::Sqrt(p * p + fMcNeutralPart*fMcNeutralPart); // Towers, gammas
         // MC Towers will start from
         //fjw->AddInputVector(px, py, pz, energy, -1 * iTowers - 10000); // includes E
         fastjet::PseudoJet particle_Track(px, py, pz, energy);
         particle_Track.set_user_index(-1 * iTowers - 10000);
-        fFull_Event.push_back(particle_Track);
+        fBackground_Event.push_back(particle_Track);
+        
 
 
       } // tower loop
+      */
+
+    //Corrected MC towers with both MC and real hadronic corrections
+    StThreeVectorF mcVtx(fOrigin[iMcD0Event].X(), fOrigin[iMcD0Event].Y(), fOrigin[iMcD0Event].Z());
+      for (Int_t towerIndex = 0; towerIndex < kMaxBTowHit; towerIndex++) {
+
+        const Int_t towerID = towerIndex + 1;
+        const Double_t mcE = mcResidual[iMcD0Event][towerIndex];
+        
+        if (mcE <= 0.0) continue;
+
+        StThreeVectorF tmpMcTowerPosition = mEmcPosition->getPosFromVertex(mcVtx, towerID);
+
+        TVector3 mcTowerPosition(tmpMcTowerPosition.x(), tmpMcTowerPosition.y(), tmpMcTowerPosition.z());
+        const Double_t mcTowerEta = mcTowerPosition.PseudoRapidity();
+
+        const Double_t mcEt = mcE / TMath::CosH(mcTowerEta);
+        if (mcEt < mTowerEnergyTMin) continue;
+
+        const Double_t p2 = mcE * mcE - fMcNeutralPart * fMcNeutralPart;
+        const Double_t p = p2 > 0.0 ? TMath::Sqrt(p2) : 0.0;
+
+        const Double_t r = mcTowerPosition.Mag();
+
+        if (r <= 1e-12) continue;
+
+        fastjet::PseudoJet mcTower(p * mcTowerPosition.x() / r, p * mcTowerPosition.y() / r, p * mcTowerPosition.z() / r, mcE);
+
+        // MC towers: user_index <= -10000
+        mcTower.set_user_index(-(towerIndex + 10000));
+
+        fFull_Event.push_back(mcTower);
+        fBackground_Event.push_back(mcTower);
+      }
 
     } // if full/charged jets
+
+    
 
     StJet *jetReco = NULL;
     StJet *ICS_jetReco = NULL;
@@ -1849,6 +2066,7 @@ Int_t StHIOverlayAngularities::Make()
     if(fBgSubtraction == 1 || fBgSubtraction == 12 || fBgSubtraction == 21){
       fjw->Clear();
       fjw->AddInputVectors(fFull_Event);
+      fjw->SetBackgroundInputVectors(fBackground_Event);
       fjw->SetCentrality(fCentrality);
       fjw->SetCentralityW(fCentralityWeight);
       fjw->SetBackgroundSub(kTRUE);
@@ -1868,6 +2086,7 @@ Int_t StHIOverlayAngularities::Make()
     if(fBgSubtraction == 2 || fBgSubtraction == 12 || fBgSubtraction == 21){
       fjw->Clear();
       fjw->AddInputVectors(fFull_Event);
+      fjw->SetBackgroundInputVectors(fBackground_Event);
       fjw->SetCentrality(fCentrality);
       fjw->SetCentralityW(fCentralityWeight);
       fjw->SetBackgroundSub(kTRUE);
@@ -2136,17 +2355,56 @@ void StHIOverlayAngularities::PrepareSetOfRecoInput(const Int_t &counterEvent, c
 
     Int_t particleid = -99;
 
-    Double_t nsigpion = Track_mNSigmaPion[reco] / 1000.;
-    Double_t nsigkaon = Track_mNSigmaKaon[reco] / 1000.;
-    Double_t nsigproton = Track_mNSigmaProton[reco] / 1000.;
+    Double_t nsigpion = TMath::Abs(Track_mNSigmaPion[reco] / 1000.);
+    Double_t nsigkaon = TMath::Abs(Track_mNSigmaKaon[reco] / 1000.);
+    //In simulation, nsigma_proton is shifted by +1, so we need to correct for that.
+    Double_t nsigproton = TMath::Abs(Track_mNSigmaProton[reco] / 1000. - 1.0);
+    Double_t nsigelectron = TMath::Abs(Track_mNSigmaElectron[reco] / 1000.);
 
-	//Co to je?
+	//Original approach:
+  /*
     if (abs(nsigpion) < 2 && abs(nsigkaon) > 2. && abs(nsigproton) > 2.)
       particleid = 1;
     else if (abs(nsigpion) > 2 && abs(nsigkaon) < 2. && abs(nsigproton) > 2.)
       particleid = 2;
     else if (abs(nsigpion) > 2 && abs(nsigkaon) > 2. && abs(nsigproton) < 2.)
       particleid = 3 * charge;
+  */
+
+
+    Bool_t hasMcTruth = (mcid >= 0 && mcid < McTrack_);
+    Int_t gePid = hasMcTruth ? McTrack_mGePid[mcid] : 0;
+
+
+    //Chosen according to the GEANT PID. If not available, then according to the lowest nsigma value.
+    if (gePid == 8 || gePid == 9) particleid = 1; // Pion
+    else if (gePid == 11 || gePid == 12) particleid = 2; // Kaon
+    else if (gePid == 14 ) particleid = 3; // Proton
+    else if (gePid == 15 ) particleid = -3; // Anti-Proton
+    else {
+
+      //The rest is chosen according to the lowest nsigma value.
+      if (nsigelectron <= nsigpion &&
+          nsigelectron <= nsigkaon &&
+          nsigelectron <= nsigproton) {
+        particleid = 1;
+      }
+      else if (nsigpion <= nsigkaon &&
+              nsigpion <= nsigproton) {
+        particleid = 1;
+      }
+      else if (nsigkaon <= nsigproton) {
+        particleid = 2;
+      }
+      else {
+        particleid = 3 * charge;
+      }
+
+
+    }
+
+
+
 
     Bool_t removetrack = kFALSE;
     Bool_t isD0DaugDescendant = kFALSE;
@@ -2279,7 +2537,9 @@ void StHIOverlayAngularities::PrepareSetOfRecoInput(const Int_t &counterEvent, c
       towerPhi -= 2.0 * pi; // force from 0-2pi
     Double_t towerEta = towerPosition.PseudoRapidity();
 
-    if ((Double_t(BTowHit_mE[tower]) / 1000. / TMath::CosH(towerEta)) > mTowerEnergyTMin) hPureMcNeutralEtaPhi->Fill(towerPosition.Phi(),towerEta,fCentralityWeight);
+    //if ((Double_t(BTowHit_mE[tower]) / 1000. / TMath::CosH(towerEta)) > mTowerEnergyTMin) hPureMcNeutralEtaPhi->Fill(towerPosition.Phi(),towerEta,fCentralityWeight);
+    if ((GetMcTowerCalibEnergy(towerID, Double_t(BTowHit_mAdc[tower])) / TMath::CosH(towerEta)) > mTowerEnergyTMin) hPureMcNeutralEtaPhi->Fill(towerPosition.Phi(),towerEta,fCentralityWeight);
+    if (Double_t(BTowHit_mAdc[tower]) > 0.2) hPureMcNeutralAdcEtaPhi->Fill(towerPosition.Phi(),towerEta,fCentralityWeight);
 
     ////if (BadTowerMap[towerID-1]) continue; //Ondra
     if (fTowerBadlist == 0 && mycuts::BadTowerMap[towerID-1]) continue;
@@ -2290,22 +2550,18 @@ void StHIOverlayAngularities::PrepareSetOfRecoInput(const Int_t &counterEvent, c
 
     ////if ((towerPhi < fJetTowerPhiMin) || (towerPhi > fJetTowerPhiMax)) continue;
       
+    Double_t towerE = -999;
+    if(fSetTowerCalibrEnergy) towerE = GetMcTowerCalibEnergy(towerID, Double_t(BTowHit_mAdc[tower])); // uncorrected energy
+    else towerE = Double_t(BTowHit_mE[tower]) / 1000.0;  // corrected energy (hadronically - done below)
 
-    Double_t towerEunCorr = Double_t(BTowHit_mE[tower]) / 1000.; // uncorrected energy
-    Double_t towerE = Double_t(BTowHit_mE[tower]) / 1000.;       // corrected energy (hadronically - done below)
-   // Double_t towEtunCorr = towerE / (1.0 * TMath::CosH(towerEta));
-
-    //if (fPrintLevel == 2)
-    //  cout << "Tower = " << tower << "\t" << towerE << "\t" << towEtunCorr << endl;
-
-    // cut on min tower energy after filling histos
-    if (towerEunCorr < mTowerEnergyTMin) continue; // if we don't have enough E to start with, why mess around
+    Double_t towerEunCorr =  towerE;
 
     // =======================================================================
     // HADRONIC CORRECTION
 
     Double_t sumEt = (towerEunCorr - mHadronicCorrFrac*towerenergy[tower]) / (1.0 * TMath::CosH(towerEta));
     Double_t towerEt = sumEt;
+    mcResidual[counterEvent][tower] = towerEunCorr - mHadronicCorrFrac*towerenergy[tower];
 
     if (towerEt < mTowerEnergyTMin) continue;
     
@@ -2326,7 +2582,7 @@ void StHIOverlayAngularities::PrepareSetOfRecoInput(const Int_t &counterEvent, c
     v.SetXYZM(p * posX / r, p * posY / r, p * posZ / r, fMcNeutralPart);
 
     fRecoMcEventTowers[counterEvent].push_back(v);
-    
+    // Jak je to tady s hmotnosti?
     hJetMcRecoNeutralPt->Fill(v.Perp(), fCentralityWeight);
     hJetMcRecoNeutralEtaPhi->Fill(v.Phi(), v.Eta(), fCentralityWeight);
     hJetMcRecoNeutralEtBefAftHC->Fill(towerEunCorr/ (1.0 * TMath::CosH(towerEta)), towerEt, fCentralityWeight);
@@ -2834,6 +3090,7 @@ void StHIOverlayAngularities::ReadTreeMc()
 
   fMCPico->SetBranchStatus("BTowHit", true);
   fMCPico->SetBranchStatus("BTowHit.mE", true);
+  fMCPico->SetBranchStatus("BTowHit.mAdc", true);
 
   fMCPico->SetBranchStatus("McVertex", true);
   fMCPico->SetBranchStatus("McVertex.mId", true);
@@ -2884,6 +3141,8 @@ void StHIOverlayAngularities::ReadTreeMc()
 
   fMCPico->SetBranchAddress("BTowHit", &BTowHit_, &b_BTowHit_);
   fMCPico->SetBranchAddress("BTowHit.mE", BTowHit_mE, &b_BTowHit_mE);
+  fMCPico->SetBranchAddress("BTowHit.mAdc", BTowHit_mAdc, &b_BTowHit_mAdc);
+
 
   fMCPico->SetBranchAddress("McVertex", &McVertex_, &b_McVertex_);
   fMCPico->SetBranchAddress("McVertex.mId", McVertex_mId, &b_McVertex_mId);
@@ -3218,6 +3477,236 @@ Double_t StHIOverlayAngularities::GetTowerCalibEnergy(Int_t TowerId){
 
   //Calculation of the calibrated energy E=C*(ADC-Pedestal)
   Double_t calibEnergy = TowerCoeff[TowerId-1]*(tower->adc() - pedestal);
+
+
+  return calibEnergy;
+
+  //Function returns the calibrated energy of the tower
+}
+Double_t StHIOverlayAngularities::GetMcTowerCalibEnergy(
+    Int_t towerId,
+    Double_t adc
+) const
+{
+  if (!fMcPedestalsLoaded ||
+      towerId < 1 ||
+      towerId > kMaxBTowHit) {
+    return 0.0;
+  }
+
+  const Double_t *towerCoefficients =
+      (fMcRunNumber <= 15094020)
+          ? mycuts::CPre
+          : mycuts::CLowMidHigh;
+
+  const Int_t towerIndex = towerId - 1;
+
+  return towerCoefficients[towerIndex] *
+         (adc - fMcTowerPedestal[towerIndex]);
+}
+Bool_t StHIOverlayAngularities::LoadMcTowerPedestals()
+{
+  if (filenamesforHIOverlay.empty()) {
+    LOG_ERROR << "Cannot load MC pedestals: MC file list is empty"
+              << endm;
+
+    return kFALSE;
+  }
+
+  const TString mcFileName = filenamesforHIOverlay.front();
+
+  TFile *mcFile = TFile::Open(mcFileName.Data(), "READ");
+
+  if (!mcFile || mcFile->IsZombie()) {
+    LOG_ERROR << "Cannot open first MC PicoDst: "
+              << mcFileName
+              << endm;
+
+    if (mcFile) {
+      mcFile->Close();
+      delete mcFile;
+    }
+
+    return kFALSE;
+  }
+
+  TTree *mcTree = dynamic_cast<TTree *>(mcFile->Get("PicoDst"));
+
+  if (!mcTree || mcTree->GetEntries() <= 0) {
+    LOG_ERROR << "Missing or empty PicoDst tree in: " << mcFileName << endm;
+
+    mcFile->Close();
+    delete mcFile;
+
+    return kFALSE;
+  }
+
+  if (!mcTree->GetBranch("Event") ||
+      !mcTree->GetBranch("Event.mRunId") ||
+      !mcTree->GetBranch("Event.mTime")) {
+    LOG_ERROR << "MC PicoDst does not contain Event.mRunId "
+              << "and/or Event.mTime: "
+              << mcFileName
+              << endm;
+
+    mcFile->Close();
+    delete mcFile;
+
+    return kFALSE;
+  }
+
+  Int_t numberOfEvents = 0;
+  Int_t mcRunNumber = 0;
+  Int_t mcEventTime = 0;
+
+  mcTree->SetMakeClass(1);
+
+  mcTree->SetBranchStatus("*", 0);
+
+  mcTree->SetBranchStatus("Event", 1);
+  mcTree->SetBranchStatus("Event.mRunId", 1);
+  mcTree->SetBranchStatus("Event.mTime", 1);
+
+  const Int_t eventStatus =
+      mcTree->SetBranchAddress("Event", &numberOfEvents);
+
+  const Int_t runStatus =
+      mcTree->SetBranchAddress("Event.mRunId", &mcRunNumber);
+
+  const Int_t timeStatus =
+      mcTree->SetBranchAddress("Event.mTime", &mcEventTime);
+
+  if (eventStatus < 0 ||
+      runStatus < 0 ||
+      timeStatus < 0 ||
+      mcTree->GetEntry(0) <= 0 ||
+      numberOfEvents != 1 ||
+      mcRunNumber <= 0 ||
+      mcEventTime <= 0) {
+    LOG_ERROR << "Cannot read valid MC run and timestamp from: "
+              << mcFileName
+              << " run=" << mcRunNumber
+              << " timestamp=" << mcEventTime
+              << endm;
+
+    mcTree->ResetBranchAddresses();
+    mcFile->Close();
+    delete mcFile;
+
+    return kFALSE;
+  }
+
+  mcTree->ResetBranchAddresses();
+
+  mcFile->Close();
+  delete mcFile;
+
+  StDbManager *dbManager = StDbManager::Instance();
+
+  if (!dbManager) {
+    LOG_ERROR << "Cannot access STAR database manager"
+              << endm;
+
+    return kFALSE;
+  }
+
+  const UInt_t previousRequestTime =
+      dbManager->getUnixRequestTime();
+
+  dbManager->setRequestTime(
+      static_cast<UInt_t>(mcEventTime)
+  );
+
+  StDbConfigNode *dbNode =
+      dbManager->initConfig("Calibrations_emc");
+
+  StDbTable *pedestalTable = 0;
+
+  if (dbNode) {
+    pedestalTable = dbNode->addDbTable("bemcPed");
+  }
+
+  Bool_t databaseLoaded = kFALSE;
+
+  if (pedestalTable) {
+    pedestalTable->setFlavor("ofl");
+
+    databaseLoaded =
+        dbManager->fetchDbTable(pedestalTable);
+  }
+
+  // Restore the database context used by the real events.
+  dbManager->setRequestTime(previousRequestTime);
+
+  if (!databaseLoaded ||
+      !pedestalTable ||
+      pedestalTable->GetNRows() < 1 ||
+      !pedestalTable->GetTable()) {
+    LOG_ERROR << "Cannot load bemcPed from STAR database"
+              << " for MC run " << mcRunNumber
+              << " and timestamp " << mcEventTime
+              << endm;
+
+    return kFALSE;
+  }
+
+  emcPed_st *pedestals =
+      reinterpret_cast<emcPed_st *>(
+          pedestalTable->GetTable()
+      );
+
+  for (Int_t tower = 0; tower < kMaxBTowHit; ++tower) {
+    fMcTowerPedestal[tower] =
+        static_cast<Float_t>(
+            pedestals[0].AdcPedestal[tower]
+        ) / 100.0f;
+  }
+
+  fMcRunNumber = mcRunNumber;
+  fMcEventTime = static_cast<UInt_t>(mcEventTime);
+  fMcPedestalsLoaded = kTRUE;
+
+  LOG_INFO << "Loaded MC BEMC pedestals"
+           << " run=" << fMcRunNumber
+           << " timestamp=" << fMcEventTime
+           << " source=" << mcFileName
+           << endm;
+
+  LOG_INFO << "MC pedestal checks:"
+           << " 1102=" << fMcTowerPedestal[1102 - 1]
+           << " 1103=" << fMcTowerPedestal[1103 - 1]
+           << " 1109=" << fMcTowerPedestal[1109 - 1]
+           << " 1110=" << fMcTowerPedestal[1110 - 1]
+           << " 1126=" << fMcTowerPedestal[1126 - 1]
+           << " 1130=" << fMcTowerPedestal[1130 - 1]
+           << endm;
+
+  return kTRUE;
+}
+
+Double_t StHIOverlayAngularities::GetTowerCalibEnergy2(Int_t TowerId, Double_t adc){
+  //Function calculates the calibrated energy of a tower
+
+  //Loading of the tower
+  StPicoBTowHit *tower = static_cast<StPicoBTowHit*>(mPicoDst->btowHit(TowerId-1)); //ID
+
+  //Initialization of the pedestal, rms and status
+  Float_t pedestal, rms;
+  Int_t status;
+
+  //Loading of the pedestal, rms and status (it does not work, if you use root instead of root4star)
+  mTables->getPedestal(BTOW, TowerId, 0, pedestal, rms);
+  mTables->getStatus(BTOW, TowerId, status);
+
+  //Initialization of the tower coefficients
+  const Double_t *TowerCoeff = nullptr;
+
+  //Tower coefficients for the different runs, parameters are saved in BemcNewCalib.h
+  if(fRunNumber <= 15094020) TowerCoeff = mycuts::CPre;
+  else TowerCoeff = mycuts::CLowMidHigh;
+
+  //Calculation of the calibrated energy E=C*(ADC-Pedestal)
+  Double_t calibEnergy = TowerCoeff[TowerId-1]*(adc - pedestal);
 
 
   return calibEnergy;
