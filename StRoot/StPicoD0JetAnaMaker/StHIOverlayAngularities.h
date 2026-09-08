@@ -20,6 +20,8 @@
 #include "StMaker.h"
 #include "StRoot/StPicoEvent/StPicoEvent.h"
 #include <set>
+#include <TProfile2D.h>
+
 
 class StFJWrapper;
 
@@ -33,6 +35,7 @@ class TString;
 class TTree;
 class TBranch;
 class TGraph;
+class TProfile2D;
 
 // STAR classes
 class StPicoDst;
@@ -593,6 +596,9 @@ public:
   // MC event
   TH2D* hPureMcNeutralEtaPhi;
   TH2D* hPureMcNeutralAdcEtaPhi;
+  TProfile2D* pPureMcNeutralAdcEtaPhi;
+  TProfile2D* pPureMcNeutralAdcMinusPedestalEtaPhi;
+  TProfile2D* pPureMcNeutralEnergyEtaPhi;
   TH2D* hMcJetConstMom;
   TH2D* hMcJetConstTheta;
 

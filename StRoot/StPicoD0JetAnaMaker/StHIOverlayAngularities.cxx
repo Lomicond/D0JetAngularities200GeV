@@ -262,11 +262,20 @@ OutputTreeInit();
     100, 0, 40, 300, 0, TMath::Pi());
   hPureMcNeutralEtaPhi = new TH2D("hPureMcNeutralEtaPhi", 
     "Neutral particles from MC w/o bad tower cut #eta vs #phi;#phi;#eta", 
-    120, -TMath::Pi(), TMath::Pi(), 100, -1.1, 1.1);
+    120, -TMath::Pi(), TMath::Pi(), 40, -1.0, 1.0);
   hPureMcNeutralAdcEtaPhi = new TH2D("hPureMcNeutralAdcEtaPhi", 
     "Neutral particles ADC from MC w/o bad tower cut #eta vs #phi;#phi;#eta", 
-    120, -TMath::Pi(), TMath::Pi(), 100, -1.1, 1.1);
-
+    120, -TMath::Pi(), TMath::Pi(), 40, -1.0, 1.0);
+  pPureMcNeutralAdcEtaPhi = new TProfile2D("pPureMcNeutralAdcEtaPhi",
+    "Mean MC tower ADC;#phi_{tower};#eta_{tower};#LTADC#GT",
+    120, -TMath::Pi(), TMath::Pi(), 40, -1.0, 1.0);
+  pPureMcNeutralAdcMinusPedestalEtaPhi = new TProfile2D("pPureMcNeutralAdcMinusPedestalEtaPhi",
+    "Mean MC tower ADC - pedestal;#phi_{tower};#eta_{tower};#LTADC - pedestal#GT",
+    120, -TMath::Pi(), TMath::Pi(), 40, -1.0, 1.0);
+  pPureMcNeutralEnergyEtaPhi = new TProfile2D(
+    "pPureMcNeutralEnergyEtaPhi", "Mean calibrated MC tower energy;"
+    "#phi_{tower};#eta_{tower};#LTE^{calib}#GT [GeV]",
+    120, -TMath::Pi(), TMath::Pi(), 40, -1.0, 1.0);
   // ======================== Jet constituents histograms ========================
   hJetTracksDedx = new TH2D("hJetTracksDedx", 
     "Track dE/dx vs signed |p|; sign(q) #times |p| [GeV/c];dE/dx [keV/cm]", 
@@ -559,7 +568,7 @@ OutputTreeInit();
   cout << "Occupancy factor for background estimation (40-80%): " << (fPeriphOccupancyFactor == true ? "true" : "false") << endl;
   cout << (fSetJetFixedSeed ? Form("Fastjet with fixed seed: %d", fJetFJSeed) 
                             : "Fastjet with random seed") << endl;
-
+               
   return kStOK;
 }
 
@@ -741,6 +750,9 @@ Int_t StHIOverlayAngularities::Finish()
     dirMcEvent->cd();
     hPureMcNeutralEtaPhi->Write();
     hPureMcNeutralAdcEtaPhi->Write();
+    pPureMcNeutralAdcEtaPhi->Write();
+    pPureMcNeutralAdcMinusPedestalEtaPhi->Write();
+    pPureMcNeutralEnergyEtaPhi->Write();
     hMcJetConstMom->Write();
     hMcJetConstTheta->Write();
     fout->cd();
@@ -1880,6 +1892,8 @@ if (fRunNumber != previousPedestalRun) {
 
 
         ///////////////////////////////////
+       
+       
         Double_t &realE = realResidual[iMcD0Event][towerIndex];
         Double_t &mcE   = mcResidual[iMcD0Event][towerIndex];
 
@@ -1889,6 +1903,8 @@ if (fRunNumber != previousPedestalRun) {
 
         const Double_t combinedBefore = realE + mcE;
 
+      bool fCrossHadronicCorrection = false; //cross-hadronic correction. Not used.
+      if (fCrossHadronicCorrection) {  
         // Deficit real-data části se může odečíst od MC energie.
         if (realE < 0.0 && mcE > 0.0) {
           const Double_t transfer = TMath::Min(-realE, mcE);
@@ -1903,6 +1919,7 @@ if (fRunNumber != previousPedestalRun) {
           mcE   += transfer;
           realE -= transfer;
         }
+      }
 
         // Záporná reziduální energie už nemá fyzikální tower constituent.
         if (realE < 0.0) realE = 0.0;
@@ -1911,6 +1928,7 @@ if (fRunNumber != previousPedestalRun) {
         if (TMath::Abs(realEBeforeCross) > 1e-12 || TMath::Abs(mcEBeforeCross)   > 1e-12) {hCrossHCTransferE->Fill(signedTransfer, fCentralityWeight);}
         /////////////////////////////////////////
 
+        if(fCrossHadronicCorrection){
         const Double_t combinedExpected =
             TMath::Max(combinedBefore, 0.0);
 
@@ -1926,6 +1944,7 @@ if (fRunNumber != previousPedestalRun) {
                   << endl;
             }
 
+          }
 
         towerE = realE;
         Double_t towerEt = towerE / TMath::CosH(towerEta);
@@ -2537,10 +2556,30 @@ void StHIOverlayAngularities::PrepareSetOfRecoInput(const Int_t &counterEvent, c
       towerPhi -= 2.0 * pi; // force from 0-2pi
     Double_t towerEta = towerPosition.PseudoRapidity();
 
-    //if ((Double_t(BTowHit_mE[tower]) / 1000. / TMath::CosH(towerEta)) > mTowerEnergyTMin) hPureMcNeutralEtaPhi->Fill(towerPosition.Phi(),towerEta,fCentralityWeight);
-    if ((GetMcTowerCalibEnergy(towerID, Double_t(BTowHit_mAdc[tower])) / TMath::CosH(towerEta)) > mTowerEnergyTMin) hPureMcNeutralEtaPhi->Fill(towerPosition.Phi(),towerEta,fCentralityWeight);
-    if (Double_t(BTowHit_mAdc[tower]) > 0.2) hPureMcNeutralAdcEtaPhi->Fill(towerPosition.Phi(),towerEta,fCentralityWeight);
 
+    Float_t mapEta = 0.0;
+    Float_t mapPhi = 0.0;
+
+    //if ((Double_t(BTowHit_mE[tower]) / 1000. / TMath::CosH(towerEta)) > mTowerEnergyTMin) hPureMcNeutralEtaPhi->Fill(towerPosition.Phi(),towerEta,fCentralityWeight);
+    if (mBemcGeom->getEtaPhi(towerID, mapEta, mapPhi) == 0) {
+
+        Double_t adc = Double_t(BTowHit_mAdc[tower]);
+        if (adc > 0.2) pPureMcNeutralAdcEtaPhi->Fill(mapPhi, mapEta, adc);
+
+        if (fMcPedestalsLoaded) {
+          const Double_t pedestal = fMcTowerPedestal[towerID - 1];
+
+          const Double_t adcMinusPedestal = adc - pedestal;
+
+          const Double_t calibratedEnergy = GetMcTowerCalibEnergy(towerID, adc);
+
+          if (adcMinusPedestal > 0.2) pPureMcNeutralAdcMinusPedestalEtaPhi->Fill(mapPhi, mapEta, adcMinusPedestal);
+
+          if (calibratedEnergy > 0.2) pPureMcNeutralEnergyEtaPhi->Fill(mapPhi, mapEta, calibratedEnergy);
+        }
+        if ((GetMcTowerCalibEnergy(towerID, Double_t(BTowHit_mAdc[tower])) / TMath::CosH(towerEta)) > mTowerEnergyTMin) hPureMcNeutralEtaPhi->Fill(towerPosition.Phi(),towerEta,fCentralityWeight);
+        if (Double_t(BTowHit_mAdc[tower]) > 0.2) hPureMcNeutralAdcEtaPhi->Fill(towerPosition.Phi(),towerEta,fCentralityWeight);
+    }
     ////if (BadTowerMap[towerID-1]) continue; //Ondra
     if (fTowerBadlist == 0 && mycuts::BadTowerMap[towerID-1]) continue;
     if (fTowerBadlist == 1 && mycuts::NeilBadTowers2014.count(towerID)) continue;
@@ -3686,9 +3725,6 @@ Bool_t StHIOverlayAngularities::LoadMcTowerPedestals()
 
 Double_t StHIOverlayAngularities::GetTowerCalibEnergy2(Int_t TowerId, Double_t adc){
   //Function calculates the calibrated energy of a tower
-
-  //Loading of the tower
-  StPicoBTowHit *tower = static_cast<StPicoBTowHit*>(mPicoDst->btowHit(TowerId-1)); //ID
 
   //Initialization of the pedestal, rms and status
   Float_t pedestal, rms;
