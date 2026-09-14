@@ -238,7 +238,7 @@ if (filenamesforHIOverlay.empty()) {
   return kStErr;
 }
 
-if (fSetTowerCalibrEnergy && !LoadMcTowerPedestals()) {
+if (fSetMCTowerCalibrEnergy && !LoadMcTowerPedestals()) {
   LOG_ERROR << "Cannot initialize BEMC pedestals for MC towers" << endm;
 
   return kStErr;
@@ -2580,11 +2580,15 @@ void StHIOverlayAngularities::PrepareSetOfRecoInput(const Int_t &counterEvent, c
           const Double_t calibratedEnergy = fSetMCTowerCalibrEnergy ? GetMcTowerCalibEnergy(towerID, adc) : Double_t(BTowHit_mE[tower]) / 1000.0;
 
           if (adcMinusPedestal > 0.2) pPureMcNeutralAdcMinusPedestalEtaPhi->Fill(mapPhi, mapEta, adcMinusPedestal);
-
-          if (calibratedEnergy > 0.2) pPureMcNeutralEnergyEtaPhi->Fill(mapPhi, mapEta, calibratedEnergy);
+          if (Double_t(BTowHit_mAdc[tower]) > 0.2) hPureMcNeutralAdcEtaPhi->Fill(mapPhi, mapEta, fCentralityWeight);
+          if (calibratedEnergy > 0.2) {
+              pPureMcNeutralEnergyEtaPhi->Fill(mapPhi, mapEta, calibratedEnergy);
+              hPureMcNeutralEtaPhi->Fill(mapPhi, mapEta, fCentralityWeight);
+        
+          } 
         }
-        if ((GetMcTowerCalibEnergy(towerID, Double_t(BTowHit_mAdc[tower])) / TMath::CosH(towerEta)) > mTowerEnergyTMin) hPureMcNeutralEtaPhi->Fill(towerPosition.Phi(),towerEta,fCentralityWeight);
-        if (Double_t(BTowHit_mAdc[tower]) > 0.2) hPureMcNeutralAdcEtaPhi->Fill(towerPosition.Phi(),towerEta,fCentralityWeight);
+        
+
     }
     ////if (BadTowerMap[towerID-1]) continue; //Ondra
     if (fTowerBadlist == 0 && mycuts::BadTowerMap[towerID-1]) continue;
