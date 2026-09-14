@@ -177,7 +177,7 @@ void runD0JetSim(const Char_t *inputFile = "",
    HIOverlayMaker->SetBgSubtraction(12); //1 - Area based method + jet shape method // 2 - ICS // 12 or 21 - both
    HIOverlayMaker->setJetNHardestSkipped(2, 2); // First: 0-10%; Second: 10-80% //CHANGE
    HIOverlayMaker->setPeriphOccupancyFactor(true); //Occupancy factor for rho (only 40-80%)
-   HIOverlayMaker->SetPhiBgModulation(false);
+   HIOverlayMaker->SetPhiBgModulation(false); 
    
    //Fastjet
    HIOverlayMaker->setJetFixedSeed(false, 12345); // false = random seed, true =

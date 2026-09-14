@@ -356,6 +356,9 @@ fj::contrib::BackgroundRescalingYPhi StFJWrapper::CreateBackgroundRescaling()
     default: v2 = 0.0; break;
   }
 
+  //test
+  v2 = TMath::Sqrt(v2);
+
   Double_t v3 = 0;
   Double_t v4 = 0;
   Double_t psi = fEP_psi2;
