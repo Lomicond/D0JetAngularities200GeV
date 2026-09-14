@@ -2286,10 +2286,15 @@ void StHIOverlayAngularities::PrepareSetOfRecoInput(const Int_t &counterEvent, c
     //Double_t energy = McTrack_mE[mcid];
     short charge = (Track_mNHitsFit[reco] > 0) ? 1 : -1;
     Double_t dca = (oVertex - o).Mag();
+    Double_t dca_z = TMath::Abs((oVertex - o).Z());
 
-    Bool_t goodtrack = (dca < fJetTrackDCAcut) &&
-    		       (abs(Track_mNHitsFit[reco]) >= fTracknHitsFit) && 
-    		       (1.*abs(Double_t(Track_mNHitsFit[reco])) / Double_t(Track_mNHitsMax[reco]) >= fTracknHitsRatio);
+    Bool_t goodtrackPre = (abs(Track_mNHitsFit[reco]) >= fTracknHitsFit) && (1.*abs(Double_t(Track_mNHitsFit[reco])) / Double_t(Track_mNHitsMax[reco]) >= fTracknHitsRatio);
+
+    Bool_t goodtrack = goodtrackPre && dca < fJetTrackDCAcut;
+
+    Double_t dcaHadrCorr = fSetDcaZHadronCorr ? dca_z : dca;
+
+    Bool_t goodtrackHadrCorr = goodtrackPre && (pt >= fMinJetTrackPt) && (eta > fJetTrackEtaMin) && (eta < fJetTrackEtaMax) && (dcaHadrCorr < fDcaZHadronCorr);
 
 	//cout << "fJetTrackDCAcut: " << fJetTrackDCAcut << endl;
 	//cout << "fTracknHitsFit: " << fTracknHitsFit << endl;	
@@ -2313,15 +2318,16 @@ void StHIOverlayAngularities::PrepareSetOfRecoInput(const Int_t &counterEvent, c
     //Int_t mcid = Track_mIdTruth[reco] - 1;
     if (mcid < 0) mctrackavailable = kFALSE;
 
-    Bool_t isatrackfromD0 = kFALSE;
+    Bool_t isatrackfromD0 = (reco == matchedpionids[iD0] || reco == matchedkaonids[iD0]);
 
     // Here, we have two paths to take. If the track needs replacement, we replace it with the fastsim method that is standardised.
     // Else, the pt, eta, phi are sent as is to the final vector.
 
-    if (mctrackavailable && goodtrack){
+    if (mctrackavailable && (goodtrack || goodtrackHadrCorr)){
     
       // Kaons and Pions that come from the current D0 need to be tossed, and replaced by the fast sim version
-      if (reco == matchedpionids[iD0] || reco == matchedkaonids[iD0]) isatrackfromD0 = kTRUE; 
+      //Original
+      //if (reco == matchedpionids[iD0] || reco == matchedkaonids[iD0]) isatrackfromD0 = kTRUE; 
 
 
       TVector3 mg(McTrack_mPx[mcid], McTrack_mPy[mcid], McTrack_mPz[mcid]);
@@ -2367,7 +2373,8 @@ void StHIOverlayAngularities::PrepareSetOfRecoInput(const Int_t &counterEvent, c
         */
     }
 
-    if (!goodtrack) continue;
+    //if (!goodtrack) continue; //original
+    if (!goodtrack && !goodtrackHadrCorr && !isatrackfromD0) continue;
     // DCA based cuts precede everything else.
 
     // Track from D0 -> K Pi || D0 is in acceptance range. The KPi do not need to be in acceptance. || The KPi track is projected onto the towers.
