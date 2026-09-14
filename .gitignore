@@ -5,6 +5,7 @@
 /err/
 /fastjet/
 /list/
+/testEff/
 /LocalLibraries.package/
 /log/
 /out/
@@ -21,3 +22,7 @@ LocalLibraries.zip
 *.tmp
 *LowMid*.list
 .sl73_*
++/testEff/
+/.consign
+.idea/
+*.bak
