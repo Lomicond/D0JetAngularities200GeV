@@ -2577,7 +2577,7 @@ void StHIOverlayAngularities::PrepareSetOfRecoInput(const Int_t &counterEvent, c
 
           const Double_t adcMinusPedestal = adc - pedestal;
 
-          const Double_t calibratedEnergy = GetMcTowerCalibEnergy(towerID, adc);
+          const Double_t calibratedEnergy = fSetMCTowerCalibrEnergy ? GetMcTowerCalibEnergy(towerID, adc) : Double_t(BTowHit_mE[tower]) / 1000.0;
 
           if (adcMinusPedestal > 0.2) pPureMcNeutralAdcMinusPedestalEtaPhi->Fill(mapPhi, mapEta, adcMinusPedestal);
 

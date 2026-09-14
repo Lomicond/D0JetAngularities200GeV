@@ -155,7 +155,6 @@ void runD0JetAna_nHitsFit17(string pico="testPico.list",
    //Tower inputs
    picoD0JetAnaMaker->setOnlyTrackBasedJets(false); //Trackbased = D0 + charged tracks
    picoD0JetAnaMaker->setTowerCalibrEnergy(true); //true = Hanseul's energy calibration; false = production calibration (bad for 14)
-   picoD0JetAnaMaker->setMCTowerCalibrEnergy(false);
    picoD0JetAnaMaker->setTowerBadList(0); //0 - 2014 Hanseul's //1 - 2014 Neil's //JetInfo.h
    picoD0JetAnaMaker->setTowerETRange(0.2,30); // < E_T [GeV] <=
    picoD0JetAnaMaker->setTowerMass(0); // gamma [GeV/c^2]
