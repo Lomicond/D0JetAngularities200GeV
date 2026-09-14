@@ -2569,27 +2569,34 @@ void StHIOverlayAngularities::PrepareSetOfRecoInput(const Int_t &counterEvent, c
     //if ((Double_t(BTowHit_mE[tower]) / 1000. / TMath::CosH(towerEta)) > mTowerEnergyTMin) hPureMcNeutralEtaPhi->Fill(towerPosition.Phi(),towerEta,fCentralityWeight);
     if (mBemcGeom->getEtaPhi(towerID, mapEta, mapPhi) == 0) {
 
-        Double_t adc = Double_t(BTowHit_mAdc[tower]);
-        if (adc > 0.2) pPureMcNeutralAdcEtaPhi->Fill(mapPhi, mapEta, adc);
+        const Double_t adc = Double_t(BTowHit_mAdc[tower]);
+
+        const Double_t selectedMcEnergy = fSetMCTowerCalibrEnergy ? GetMcTowerCalibEnergy(towerID, adc) : Double_t(BTowHit_mE[tower]) / 1000.0;
+
+        if (adc > 0.2) {
+            pPureMcNeutralAdcEtaPhi->Fill(mapPhi, mapEta, adc);
+            hPureMcNeutralAdcEtaPhi->Fill(mapPhi, mapEta, fCentralityWeight
+            );
+        }
 
         if (fMcPedestalsLoaded) {
-          const Double_t pedestal = fMcTowerPedestal[towerID - 1];
+            const Double_t pedestal = fMcTowerPedestal[towerID - 1];
 
-          const Double_t adcMinusPedestal = adc - pedestal;
+            const Double_t adcMinusPedestal = adc - pedestal;
 
-          const Double_t calibratedEnergy = fSetMCTowerCalibrEnergy ? GetMcTowerCalibEnergy(towerID, adc) : Double_t(BTowHit_mE[tower]) / 1000.0;
-
-          if (adcMinusPedestal > 0.2) pPureMcNeutralAdcMinusPedestalEtaPhi->Fill(mapPhi, mapEta, adcMinusPedestal);
-          if (Double_t(BTowHit_mAdc[tower]) > 0.2) hPureMcNeutralAdcEtaPhi->Fill(mapPhi, mapEta, fCentralityWeight);
-          if (calibratedEnergy > 0.2) {
-              pPureMcNeutralEnergyEtaPhi->Fill(mapPhi, mapEta, calibratedEnergy);
-              hPureMcNeutralEtaPhi->Fill(mapPhi, mapEta, fCentralityWeight);
-        
-          } 
+            if (adcMinusPedestal > 0.2) {
+                pPureMcNeutralAdcMinusPedestalEtaPhi->Fill(mapPhi, mapEta, adcMinusPedestal
+                );
+            }
         }
-        
 
+        if (selectedMcEnergy > 0.2) {
+            pPureMcNeutralEnergyEtaPhi->Fill(mapPhi, mapEta, selectedMcEnergy);
+        }
+
+        if (selectedMcEnergy / TMath::CosH(towerEta) > mTowerEnergyTMin) {hPureMcNeutralEtaPhi->Fill(mapPhi, mapEta, fCentralityWeight);}
     }
+
     ////if (BadTowerMap[towerID-1]) continue; //Ondra
     if (fTowerBadlist == 0 && mycuts::BadTowerMap[towerID-1]) continue;
     if (fTowerBadlist == 1 && mycuts::NeilBadTowers2014.count(towerID)) continue;
