@@ -2323,7 +2323,7 @@ void StHIOverlayAngularities::PrepareSetOfRecoInput(const Int_t &counterEvent, c
     // Here, we have two paths to take. If the track needs replacement, we replace it with the fastsim method that is standardised.
     // Else, the pt, eta, phi are sent as is to the final vector.
 
-    if (mctrackavailable && (goodtrack || goodtrackHadrCorr)){
+    if (mctrackavailable && goodtrack) {
     
       // Kaons and Pions that come from the current D0 need to be tossed, and replaced by the fast sim version
       //Original
@@ -2335,16 +2335,10 @@ void StHIOverlayAngularities::PrepareSetOfRecoInput(const Int_t &counterEvent, c
       Double_t fastsimsmearing;
       Int_t pid = McTrack_mGePid[mcid];
 
-      if (pid == 8 || pid == 9)
-        fastsimsmearing = fPionMomResolution->Eval(mg.Pt()); // Pion
-      else if (pid == 11 || pid == 12)
-        fastsimsmearing = fKaonMomResolution->Eval(mg.Pt()); // Kaon
-      else if (pid == 15 || pid == 14)
-        fastsimsmearing = fProtonMomResolution->Eval(mg.Pt()); // Proton
-      else
-        fastsimsmearing = fPionMomResolution->Eval(mg.Pt()); // Catch all: pions
-
-	////cout << sqrt(McTrack_mE[mcid]*McTrack_mE[mcid] - mg.Mag()*mg.Mag()) << " ate " << endl;
+      if (pid == 8 || pid == 9) fastsimsmearing = fPionMomResolution->Eval(mg.Pt()); // Pion
+      else if (pid == 11 || pid == 12) fastsimsmearing = fKaonMomResolution->Eval(mg.Pt()); // Kaon
+      else if (pid == 15 || pid == 14) fastsimsmearing = fProtonMomResolution->Eval(mg.Pt()); // Proton
+      else fastsimsmearing = fPionMomResolution->Eval(mg.Pt()); // Catch all: pions
 
 	
       if (relativesmearing > 3 * fastsimsmearing){
@@ -2378,12 +2372,14 @@ void StHIOverlayAngularities::PrepareSetOfRecoInput(const Int_t &counterEvent, c
     // DCA based cuts precede everything else.
 
     // Track from D0 -> K Pi || D0 is in acceptance range. The KPi do not need to be in acceptance. || The KPi track is projected onto the towers.
+    /* //Original
     if (isatrackfromD0){
     
       Int_t matchedTowerIndex = abs(int(Track_mBEmcMatchedTowerIndex[reco])) - 1;
       if (matchedTowerIndex >= 0) towerenergy[matchedTowerIndex] += energy_hadr_corr;
      
     }
+    */
 
     Int_t particleid = -99;
 
@@ -2466,6 +2462,14 @@ void StHIOverlayAngularities::PrepareSetOfRecoInput(const Int_t &counterEvent, c
       }
     }
 
+    //Towers for hadr.correction are filled here.
+    Int_t matchedTowerIndex = abs(int(Track_mBEmcMatchedTowerIndex[reco])) - 1;
+    Bool_t useForHadrCorr = isatrackfromD0 || (goodtrackHadrCorr && !removetrack && !isD0DaugDescendant);
+    if (useForHadrCorr && matchedTowerIndex >= 0) towerenergy[matchedTowerIndex] += energy_hadr_corr;
+
+    // Track may be used for hadronic correction but not as a jet constituent.
+    if (!goodtrack) continue;
+
     // jet track acceptance cuts now
     if (pt_new < fMinJetTrackPt || pt_new > fMaxJetTrackPt) continue; // 20.0 STAR, 100.0 ALICE
 
@@ -2492,9 +2496,9 @@ void StHIOverlayAngularities::PrepareSetOfRecoInput(const Int_t &counterEvent, c
     if (ignoretrack) continue; // To match the efficiency, we start tossing random tracks.
 
 
-    Int_t matchedTowerIndex = abs(int(Track_mBEmcMatchedTowerIndex[reco])) - 1;
+   // Int_t matchedTowerIndex = abs(int(Track_mBEmcMatchedTowerIndex[reco])) - 1;
     
-    if (matchedTowerIndex >= 0) towerenergy[matchedTowerIndex] += energy_hadr_corr;
+   // if (matchedTowerIndex >= 0) towerenergy[matchedTowerIndex] += energy_hadr_corr;
 
     TLorentzVector v;
     //v.SetXYZM(px_new, py_new, pz_new, M_PION_PLUS);
