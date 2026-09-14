@@ -22,7 +22,6 @@ LocalLibraries.zip
 *.tmp
 *LowMid*.list
 .sl73_*
-+/testEff/
-/.consign
+.consign
 .idea/
 *.bak
