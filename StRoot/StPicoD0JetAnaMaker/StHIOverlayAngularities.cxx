@@ -1220,7 +1220,7 @@ if (fRunNumber != previousPedestalRun) {
     
     matchedpionids.clear();
     matchedkaonids.clear();
- //cout << "McTrack_: " << McTrack_<<endl;
+
     //Loop over all McTracks
     for (Int_t iMcTrack = 0; iMcTrack < McTrack_; iMcTrack++) {
    
@@ -1239,10 +1239,8 @@ if (fRunNumber != previousPedestalRun) {
       
       //Phi of D0
       Double_t phi = particle.Phi();
-      while (phi < 0.0)
-        phi += 2.0 * pi; // force from 0-2pi
-      while (phi > 2.0 * pi)
-        phi -= 2.0 * pi; // force from 0-2pi
+      while (phi < 0.0) phi += 2.0 * pi; // force from 0-2pi
+      while (phi > 2.0 * pi) phi -= 2.0 * pi; // force from 0-2pi
         
       //Eta of D0  
       Double_t eta = particle.PseudoRapidity();
@@ -2389,17 +2387,6 @@ void StHIOverlayAngularities::PrepareSetOfRecoInput(const Int_t &counterEvent, c
     Double_t nsigproton = TMath::Abs(Track_mNSigmaProton[reco] / 1000. - 1.0);
     Double_t nsigelectron = TMath::Abs(Track_mNSigmaElectron[reco] / 1000.);
 
-	//Original approach:
-  /*
-    if (abs(nsigpion) < 2 && abs(nsigkaon) > 2. && abs(nsigproton) > 2.)
-      particleid = 1;
-    else if (abs(nsigpion) > 2 && abs(nsigkaon) < 2. && abs(nsigproton) > 2.)
-      particleid = 2;
-    else if (abs(nsigpion) > 2 && abs(nsigkaon) > 2. && abs(nsigproton) < 2.)
-      particleid = 3 * charge;
-  */
-
-
     Bool_t hasMcTruth = (mcid >= 0 && mcid < McTrack_);
     Int_t gePid = hasMcTruth ? McTrack_mGePid[mcid] : 0;
 
@@ -2412,22 +2399,10 @@ void StHIOverlayAngularities::PrepareSetOfRecoInput(const Int_t &counterEvent, c
     else {
 
       //The rest is chosen according to the lowest nsigma value.
-      if (nsigelectron <= nsigpion &&
-          nsigelectron <= nsigkaon &&
-          nsigelectron <= nsigproton) {
-        particleid = 1;
-      }
-      else if (nsigpion <= nsigkaon &&
-              nsigpion <= nsigproton) {
-        particleid = 1;
-      }
-      else if (nsigkaon <= nsigproton) {
-        particleid = 2;
-      }
-      else {
-        particleid = 3 * charge;
-      }
-
+      if (nsigelectron <= nsigpion && nsigelectron <= nsigkaon && nsigelectron <= nsigproton) {particleid = 1;}
+      else if (nsigpion <= nsigkaon && nsigpion <= nsigproton) {particleid = 1;}
+      else if (nsigkaon <= nsigproton) {particleid = 2;}
+      else {particleid = 3 * charge;}
 
     }
 
@@ -2436,19 +2411,16 @@ void StHIOverlayAngularities::PrepareSetOfRecoInput(const Int_t &counterEvent, c
 
     Bool_t removetrack = kFALSE;
     Bool_t isD0DaugDescendant = kFALSE;
-    if (!isatrackfromD0 &&
-       pt > fMinJetTrackPt && pt < fMaxJetTrackPt && 
-       (eta > fJetTrackEtaMin) && (eta < fJetTrackEtaMax)){
-    // I am using the old pt for this because the efficiencies were derived with the old pt.
-    // I am keeping things consistent with MC
+    if (!isatrackfromD0 && pt > fMinJetTrackPt && pt < fMaxJetTrackPt && (eta > fJetTrackEtaMin) && (eta < fJetTrackEtaMax)){
+      // I am using the old pt for this because the efficiencies were derived with the old pt.
+      // I am keeping things consistent with MC
     
       // KeepTrack returns False if the track is to be discarded // RemoveTrack = True if KeepTrack is False
       removetrack = !KeepTrack(particleid, centralitybinforefficiency, pt);
       // If D0 descendant, record that as well.
       isD0DaugDescendant = kFALSE;
       Int_t mctrkid = Track_mIdTruth[reco] - 1;
-      if (std::find(fDroppedMCTracks.begin(), fDroppedMCTracks.end(), mctrkid) != fDroppedMCTracks.end())
-        isD0DaugDescendant = kTRUE;
+      if (std::find(fDroppedMCTracks.begin(), fDroppedMCTracks.end(), mctrkid) != fDroppedMCTracks.end()) isD0DaugDescendant = kTRUE;
     }
 
     if (removetrack || isD0DaugDescendant)
@@ -3065,7 +3037,7 @@ Int_t StHIOverlayAngularities::GetMatchedRecoTrackFromMCTrack(const Int_t &McTra
     Double_t nHitsRatio = 1.0 * nHitsFit / nHitsMax;
 
     // additional quality cuts for tracks
-    if (dca > fJetTrackDCAcut) continue;
+    //if (dca > fJetTrackDCAcut) continue; //Not used because of discrepancy between DCA and DCA_z
 
     if (nHitsFit < fTracknHitsFit) continue;
 
