@@ -517,6 +517,7 @@ OutputTreeInit();
   cout << (fSetTowerCalibrEnergy ? "Hanseul's energy calibration" : "Production energy calibration") << endl;
   cout << (fTowerBadlist == 0 ? "Hanseul's bad tower 2014 list" : 
            fTowerBadlist == 1 ? "Neil's bad tower 2014 list" : "None bad tower listed used!!!") << endl;
+  cout << (fSetMCTowerCalibrEnergy ? "MC: Hanseul's energy calibration" : "MC: Production energy calibration") << endl;       
   cout << "Particle mass: " << fNeutralPart << " GeV/c^2" << endl;
   cout << "MC particle mass: " << fMcNeutralPart << " GeV/c^2" << endl;
   cout << "********************" << endl;
@@ -653,6 +654,10 @@ Int_t StHIOverlayAngularities::Finish()
     TString EventListStrA = (fSetTowerCalibrEnergy == true) ? "Hanseul's energy calibration\n" :
                             (fSetTowerCalibrEnergy == false) ? "Production energy calibration\n" :
                             "Weird\n";
+    TString EventListStrB = (fSetMCTowerCalibrEnergy == true) ? "MC: Hanseul's energy calibration\n" :
+                            (fSetMCTowerCalibrEnergy == false) ? "MC: Production energy calibration\n" :
+                            "Weird\n";
+
 
     TString EventListStr = (fTowerBadlist == 0) ? "Hanseul's bad tower 2014 list\n" :
                            (fTowerBadlist == 1) ? "Neil's bad tower 2014 list\n" :
@@ -663,10 +668,11 @@ Int_t StHIOverlayAngularities::Finish()
       "ET => %.2f GeV\n"
       "%s"
       "%s"
+      "%s"
       "Particle mass: %.6f GeV/c^2\n"
       "MC particle mass: %.6f GeV/c^2\n"
       "********************\n",
-      mTowerEnergyTMin, EventListStr.Data(), EventListStrA.Data(), fNeutralPart, fMcNeutralPart);
+      mTowerEnergyTMin, EventListStr.Data(), EventListStrA.Data(), EventListStrB.Data(), fNeutralPart, fMcNeutralPart);
 
     TString paramHadr = (fSetDcaZHadronCorr == true) ? "DCA_Z\n" :
                         (fSetDcaZHadronCorr == false) ? "DCA\n" :
@@ -2590,7 +2596,7 @@ void StHIOverlayAngularities::PrepareSetOfRecoInput(const Int_t &counterEvent, c
     ////if ((towerPhi < fJetTowerPhiMin) || (towerPhi > fJetTowerPhiMax)) continue;
       
     Double_t towerE = -999;
-    if(fSetTowerCalibrEnergy) towerE = GetMcTowerCalibEnergy(towerID, Double_t(BTowHit_mAdc[tower])); // uncorrected energy
+    if(fSetMCTowerCalibrEnergy) towerE = GetMcTowerCalibEnergy(towerID, Double_t(BTowHit_mAdc[tower])); // uncorrected energy
     else towerE = Double_t(BTowHit_mE[tower]) / 1000.0;  // corrected energy (hadronically - done below)
 
     Double_t towerEunCorr =  towerE;

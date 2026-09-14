@@ -147,6 +147,7 @@ void runD0JetSim_nHitsFit13(const Char_t *inputFile = "",
     HIOverlayMaker->SetMinJetTowerET(0.2); 
     HIOverlayMaker->setTowerBadList(0); //0 - 2014 Hanseul's //1 - 2014 Neil's //JetInfo.h
     HIOverlayMaker->setTowerCalibrEnergy(true);
+    HIOverlayMaker->setMCTowerCalibrEnergy(false);
     HIOverlayMaker->SetNeutralPart(0); //D0 = 1.86484, GAMMA = 0, PION_PLUS = 0.13957 //TEST
     HIOverlayMaker->SetMcNeutralPart(0);
     

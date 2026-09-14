@@ -120,7 +120,7 @@ namespace mycuts
    extern const std::set<int> AllBadRunList2014;
    
    extern const int BadTowerArrT[433];
-   extern const int BadTowerArr[822];
+   extern const int BadTowerArr[851];
    extern const int BadTowerMap[4800];
    extern const std::set<int> NeilBadTowers2014;
    extern const Double_t CLowMidHigh[4800];

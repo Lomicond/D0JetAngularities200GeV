@@ -149,6 +149,7 @@ void runD0JetSim_Neil(const Char_t *inputFile = "",
     HIOverlayMaker->SetMinJetTowerET(0.2); 
     /**/HIOverlayMaker->setTowerBadList(1); //0 - 2014 Hanseul's //1 - 2014 Neil's //JetInfo.h
     /**/HIOverlayMaker->setTowerCalibrEnergy(false);
+    HIOverlayMaker->setMCTowerCalibrEnergy(false);
     /**/HIOverlayMaker->SetNeutralPart(0.13957); //D0 = 1.86484, GAMMA = 0, PION_PLUS = 0.13957 //TEST
     /**/HIOverlayMaker->SetMcNeutralPart(0.13957);
     

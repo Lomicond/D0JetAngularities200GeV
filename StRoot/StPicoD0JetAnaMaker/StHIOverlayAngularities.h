@@ -159,6 +159,7 @@ protected:
   // Jet Constituents - Towers
   Int_t fTowerBadlist = 0;
   Bool_t fSetTowerCalibrEnergy = false;
+  Bool_t fSetMCTowerCalibrEnergy = false;
   Double_t fNeutralPart;
   Double_t fMcNeutralPart;
 
@@ -336,6 +337,11 @@ public:
   virtual void setTowerCalibrEnergy(Bool_t tmpSetTowerCalibrEnergy) {
     fSetTowerCalibrEnergy = tmpSetTowerCalibrEnergy;
   }
+
+  virtual void setMCTowerCalibrEnergy(Bool_t tmpSetMCTowerCalibrEnergy) {
+    fSetMCTowerCalibrEnergy = tmpSetMCTowerCalibrEnergy;
+  }
+
 
   virtual void setMaxDcaZHadronCorr(Bool_t tmpSetDcaZHadronCorr, Double_t tmpDcaZHadronCorr) {
     fSetDcaZHadronCorr = tmpSetDcaZHadronCorr;
