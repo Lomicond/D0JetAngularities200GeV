@@ -140,6 +140,8 @@ protected:
   Double_t fMinMcPtD0;
   Bool_t fSetMcAbsEtaD0 = false;
   Double_t fMcAbsEtaD0 = 1;
+  Bool_t fSetMcAbsRapD0 = false;
+  Double_t fMcAbsRapD0 = 0.6;
   Double_t fMcD0Mass;
 
   // Jet Constituents - Charged
@@ -231,6 +233,11 @@ public:
   virtual void setMcAbsEtaD0(Bool_t setMcEtaD0, Double_t mcEtaD0) {
     fSetMcAbsEtaD0 = setMcEtaD0;
     fMcAbsEtaD0 = mcEtaD0;
+  }
+
+  virtual void setMcAbsRapD0(Bool_t enabled, Double_t maxAbsRap) {
+    fSetMcAbsRapD0 = enabled;
+    fMcAbsRapD0 = maxAbsRap;
   }
 
   virtual void SetMcD0Mass(Double_t McD0Mass) { fMcD0Mass = McD0Mass; }
@@ -385,7 +392,7 @@ public:
   Float_t Event_mPrimaryVertexX[kMaxEvent];
   Float_t Event_mPrimaryVertexY[kMaxEvent];
   Float_t Event_mPrimaryVertexZ[kMaxEvent];
-  Float_t Event_mVzVpd[kMaxEvent];
+  //Float_t Event_mVzVpd[kMaxEvent];
 
   Int_t Track_;
   Float_t Track_mGMomentumX[kMaxTrack]; // [Track_]
@@ -440,7 +447,7 @@ public:
   TBranch *b_Event_mPrimaryVertexX; //!
   TBranch *b_Event_mPrimaryVertexY; //!
   TBranch *b_Event_mPrimaryVertexZ; //!
-  TBranch *b_Event_mVzVpd; //!
+  //TBranch *b_Event_mVzVpd; //!
 
   TBranch *b_Track_;            //!
   TBranch *b_Track_mGMomentumX; //!
@@ -611,7 +618,13 @@ public:
   TH2D* hMcJetConstTheta;
   TH1D* hMcVtxZ;
   TH2D* hMcVtxR;
-  TH1D* hMcVzDiff;
+  //TH1D* hMcVzDiff;
+  TH1D* hMcNTracks;
+  TH1D* hMcTrackPt;
+  TH1D* hMcGeantPid;
+  TH1D* hMcD0Pt;
+  TH1D* hMcND0;
+  TH1D* hMcND0Accepted;
 
   // Jet constituents:
   TH2D* hJetTracksDedx;

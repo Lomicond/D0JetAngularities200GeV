@@ -110,6 +110,8 @@ StHIOverlayAngularities::StHIOverlayAngularities(const char *name,
   fMinMcPtD0 = -1;
   fSetMcAbsEtaD0 = false;
   fMcAbsEtaD0 = 1;
+  fSetMcAbsRapD0 = false;
+  fMcAbsRapD0 = 0.6;
   fMcD0Mass = 0;
   fMcChargedPart = 0;
   fMcNeutralPart = 0;
@@ -277,8 +279,14 @@ OutputTreeInit();
     "#phi_{tower};#eta_{tower};#LTE^{calib}#GT [GeV]",
     120, -TMath::Pi(), TMath::Pi(), 40, -1.0, 1.0);
   hMcVtxZ    = new TH1D("hMcVtxZ",    ";McPVtx.z() [cm]; Count", 100, -10, 10);
-  hMcVtxR    = new TH2D("hMcVtxR",    ";McPVtx.x() [cm]; PVtx.y() [cm]", 100, -3, 3, 100, -3, 3);
-  hMcVzDiff  = new TH1D("hMcVzDiff",  "V_{z}^{MC} - V_{z}^{VPD,MC};V_{z}^{MC} - V_{z}^{VPD,MC} [cm];Count", 80, -4.0, 4.0);
+  hMcVtxR    = new TH2D("hMcVtxR",    ";McPVtx.x() [cm]; McPVtx.y() [cm]", 100, -3, 3, 100, -3, 3);
+  //hMcVzDiff  = new TH1D("hMcVzDiff",  "V_{z}^{MC} - V_{z}^{VPD,MC};V_{z}^{MC} - V_{z}^{VPD,MC} [cm];Count", 80, -4.0, 4.0);
+  hMcNTracks = new TH1D("hMcNTracks",";N_{MC}; Count", 501, -0.5, 500.5);
+  hMcTrackPt = new TH1D("hMcTrackPt",";p_{T}^{MC} [GeV/c]; Count", 200, 0, 40);
+  hMcGeantPid = new TH1D("hMcGeantPid",";p_{T}^{MC} [GeV/c]; Count", 51, -0.5, 50.5);
+  hMcD0Pt = new TH1D("hMcD0Pt",";p_{T,D^{0}}^{MC} [GeV/c]; Count", 40, 0, 20);
+  hMcND0 = new TH1D("hMcND0",";N_{MC,D^{0}}; Count", 10, 0.5, 10.5);
+  hMcND0Accepted = new TH1D("hMcND0Accepted",";N_{MC,D^{0}}^{Good}; Count", 11, -0.5, 10.5);
     
   // ======================== Jet constituents histograms ========================
   hJetTracksDedx = new TH2D("hJetTracksDedx", 
@@ -760,7 +768,13 @@ Int_t StHIOverlayAngularities::Finish()
     dirMcEvent->cd();
     hMcVtxZ->Write();
     hMcVtxR->Write();
-    hMcVzDiff->Write();
+    hMcNTracks->Write();
+    hMcTrackPt->Write();
+    hMcGeantPid->Write();
+    hMcD0Pt->Write();
+    hMcND0->Write();
+    hMcND0Accepted->Write();
+    //hMcVzDiff->Write();
     hPureMcNeutralEtaPhi->Write();
     hPureMcNeutralAdcEtaPhi->Write();
     pPureMcNeutralAdcEtaPhi->Write();
@@ -1219,7 +1233,7 @@ if (fRunNumber != previousPedestalRun) {
     if (Event_ > 0) {
       hMcVtxZ->Fill(Event_mPrimaryVertexZ[0]);
       hMcVtxR->Fill(Event_mPrimaryVertexX[0], Event_mPrimaryVertexY[0]);
-      hMcVzDiff->Fill(Event_mPrimaryVertexZ[0] - Event_mVzVpd[0]);
+      //hMcVzDiff->Fill(Event_mPrimaryVertexZ[0] - Event_mVzVpd[0]); //Not working
     }   
     
 
@@ -1237,8 +1251,17 @@ if (fRunNumber != previousPedestalRun) {
     matchedpionids.clear();
     matchedkaonids.clear();
 
+    hMcNTracks->Fill(McTrack_);
+
+    Int_t nMcD0 = 0;
+    Int_t nMcD0Accepted = 0;
     //Loop over all McTracks
     for (Int_t iMcTrack = 0; iMcTrack < McTrack_; iMcTrack++) {
+    
+      //QA
+      Double_t mcPt = TMath::Sqrt(Double_t(McTrack_mPx[iMcTrack]) * McTrack_mPx[iMcTrack] + Double_t(McTrack_mPy[iMcTrack]) * McTrack_mPy[iMcTrack]);
+      hMcTrackPt->Fill(mcPt);
+      hMcGeantPid->Fill(McTrack_mGePid[iMcTrack]);
    
       //37 D0 //38 antiD0
       if (McTrack_mGePid[iMcTrack] != 37 && McTrack_mGePid[iMcTrack] != 38) continue;
@@ -1250,19 +1273,28 @@ if (fRunNumber != previousPedestalRun) {
       //Track variables
       Double_t pt = particle.Pt();
       
+      ++nMcD0;
+      hMcD0Pt->Fill(pt);
+      
       // Only D0s we care about need to have pT > 1 GeV
       if (pt < fMinMcPtD0) continue; 
-      
+     
       //Phi of D0
       Double_t phi = particle.Phi();
       while (phi < 0.0) phi += 2.0 * pi; // force from 0-2pi
       while (phi > 2.0 * pi) phi -= 2.0 * pi; // force from 0-2pi
         
-      //Eta of D0  
+      //Eta and rapidity of D0  
       Double_t eta = particle.PseudoRapidity();
+      Double_t rapidity = particle.Rapidity();
 
       //Eta D0 cut //not used if fMcAbsEtaD0 == -1
       if (fSetMcAbsEtaD0 && (abs(eta) > fMcAbsEtaD0)) continue;
+      //Rapidity D0 cut //not used if fMcAbsEtaD0 == -1
+      if (fSetMcAbsRapD0 && (abs(rapidity) >= fMcAbsRapD0)) continue;
+      
+      
+      ++nMcD0Accepted;
         
       if (fPrintLevel) cout << "MC D0 Found = " << pt << "\t" << eta << "\t" << phi << endl;
       
@@ -1303,6 +1335,10 @@ if (fRunNumber != previousPedestalRun) {
       }
     
     } //End of loop over all McTracks
+    
+    //QA
+    hMcND0->Fill(nMcD0);
+    hMcND0Accepted->Fill(nMcD0Accepted);
     
     assert((pionids.size() == kaonids.size()) && "Same number of kaons and pions \n");
     
@@ -3177,7 +3213,7 @@ void StHIOverlayAngularities::ReadTreeMc()
   fMCPico->SetBranchAddress("Event.mPrimaryVertexX", Event_mPrimaryVertexX, &b_Event_mPrimaryVertexX);
   fMCPico->SetBranchAddress("Event.mPrimaryVertexY", Event_mPrimaryVertexY, &b_Event_mPrimaryVertexY);
   fMCPico->SetBranchAddress("Event.mPrimaryVertexZ", Event_mPrimaryVertexZ, &b_Event_mPrimaryVertexZ);
-  fMCPico->SetBranchAddress("Event.mVzVpd", Event_mVzVpd, &b_Event_mVzVpd);
+  //fMCPico->SetBranchAddress("Event.mVzVpd", Event_mVzVpd, &b_Event_mVzVpd);
 
   fMCPico->SetBranchAddress("Track", &Track_, &b_Track_);
   fMCPico->SetBranchAddress("Track.mGMomentumX", Track_mGMomentumX, &b_Track_mGMomentumX);

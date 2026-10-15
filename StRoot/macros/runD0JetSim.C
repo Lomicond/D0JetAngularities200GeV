@@ -129,6 +129,7 @@ void runD0JetSim(const Char_t *inputFile = "",
     // ---------------D0 cuts-----------------------------    
     HIOverlayMaker->SetMinMcPtD0(1);
     HIOverlayMaker->setMcAbsEtaD0(false, 1); //false = not used, abs(eta) <= value
+    HIOverlayMaker->setMcAbsRapD0(true, 0.6); //false = not used, abs(y) <= value
     HIOverlayMaker->SetMcD0Mass(1.86484); //D0 = 1.86484, GAMMA = 0, PION_PLUS = 0.13957
     
     //----------------Jet constituent cuts-----------------------
