@@ -3584,41 +3584,50 @@ void StHIOverlayAngularities::FillTree(const Int_t &numberOfD0Events)
 
     ////exit(0);
     outputTree->Fill();
-
-    if (fRecoJetTree.numberofconstituents > 0){
-
-      hResponseJetPt->Fill(fRecoJetTree.jetpt, fMcJetTree.jetpt, fCentralityWeight);
-	   hResponseJetD0Z->Fill(fRecoJetTree.d0z, fMcJetTree.d0z,fCentralityWeight);
-	   hResponseJetNConst->Fill(fRecoJetTree.numberofconstituents, fMcJetTree.numberofconstituents,fCentralityWeight);
-	   hResponseJetLambda1_0_5->Fill(fRecoJetTree.lambda_1_half, fMcJetTree.lambda_1_half,fCentralityWeight);
-	   hResponseJetLambda1_1->Fill(fRecoJetTree.lambda_1_1, fMcJetTree.lambda_1_1,fCentralityWeight);
-	   hResponseJetLambda1_1_5->Fill(fRecoJetTree.lambda_1_1half, fMcJetTree.lambda_1_1half,fCentralityWeight);
-	   hResponseJetLambda1_2->Fill(fRecoJetTree.lambda_1_2, fMcJetTree.lambda_1_2,fCentralityWeight);
-	   hResponseJetLambda1_3->Fill(fRecoJetTree.lambda_1_3, fMcJetTree.lambda_1_3,fCentralityWeight);
-	   hResponseJetMomDisp->Fill(fRecoJetTree.dispersion, fMcJetTree.dispersion,fCentralityWeight);
-	   hResponseJetD0DeltaR->Fill(fRecoJetTree.d0DeltaR, fMcJetTree.d0DeltaR, fCentralityWeight);
+    
+    Bool_t useICS = (fBgSubtraction == 2 || fBgSubtraction == 12 || fBgSubtraction == 21);
+    // Reference only: no copy of the tree structure.
+    StJetTreeStruct &responseReco = useICS ? fICS_RecoJetTree : fRecoJetTree;
+    
+    Bool_t jetFound = (responseReco.numberofconstituents > 0);
+    
+    //If jet was found
+    if (jetFound){
+    
+           Double_t recoPt = useICS ? responseReco.jetpt : responseReco.jetptcorr;
+    
+           hResponseJetPt->Fill(recoPt, fMcJetTree.jetpt, fCentralityWeight);
+	   hResponseJetD0Z->Fill(responseReco.d0z, fMcJetTree.d0z, fCentralityWeight);
+	   hResponseJetNConst->Fill(responseReco.numberofconstituents, fMcJetTree.numberofconstituents, fCentralityWeight);
+	   hResponseJetLambda1_0_5->Fill(responseReco.lambda_1_half, fMcJetTree.lambda_1_half, fCentralityWeight);
+	   hResponseJetLambda1_1->Fill(responseReco.lambda_1_1, fMcJetTree.lambda_1_1, fCentralityWeight);
+	   hResponseJetLambda1_1_5->Fill(responseReco.lambda_1_1half, fMcJetTree.lambda_1_1half, fCentralityWeight);
+	   hResponseJetLambda1_2->Fill(responseReco.lambda_1_2, fMcJetTree.lambda_1_2, fCentralityWeight);
+	   hResponseJetLambda1_3->Fill(responseReco.lambda_1_3, fMcJetTree.lambda_1_3, fCentralityWeight);
+	   hResponseJetMomDisp->Fill(responseReco.dispersion, fMcJetTree.dispersion, fCentralityWeight);
+	   hResponseJetD0DeltaR->Fill(responseReco.d0DeltaR, fMcJetTree.d0DeltaR, fCentralityWeight);
 	   hResponseJetD0Pt->Fill(fRecoJetTree.d0pt, fMcJetTree.d0pt, fCentralityWeight);
 	      
-	   if (centralitybinforefficiency==0) etaRecoTrue00_10->Fill(fRecoJetTree.jeteta, fMcJetTree.jeteta);
-	   if (centralitybinforefficiency==1) etaRecoTrue10_40->Fill(fRecoJetTree.jeteta, fMcJetTree.jeteta);
-	   if (centralitybinforefficiency==2) etaRecoTrue40_80->Fill(fRecoJetTree.jeteta, fMcJetTree.jeteta);
+	   if (centralitybinforefficiency==0) etaRecoTrue00_10->Fill(responseReco.jeteta, fMcJetTree.jeteta);
+	   if (centralitybinforefficiency==1) etaRecoTrue10_40->Fill(responseReco.jeteta, fMcJetTree.jeteta);
+	   if (centralitybinforefficiency==2) etaRecoTrue40_80->Fill(responseReco.jeteta, fMcJetTree.jeteta);
 	   
 	   if (centralitybinforefficiency==0) effJetRec00_10->Fill(true, fMcJetTree.jetpt);
 		   else if (centralitybinforefficiency==1) effJetRec10_40->Fill(true, fMcJetTree.jetpt);
 		   else if (centralitybinforefficiency==2) effJetRec40_80->Fill(true, fMcJetTree.jetpt);
-    	   } else {
-    	   if (centralitybinforefficiency==0) effJetRec00_10->Fill(false, fMcJetTree.jetpt);
-		   else if (centralitybinforefficiency==1) effJetRec10_40->Fill(false, fMcJetTree.jetpt);
-		   else if (centralitybinforefficiency==2) effJetRec40_80->Fill(false, fMcJetTree.jetpt);
-           }
+		   
+      } //End of the condition: If jet was found
+      
+      if (centralitybinforefficiency == 0) effJetRec00_10->Fill(jetFound, fMcJetTree.jetpt);
+      else if (centralitybinforefficiency == 1) effJetRec10_40->Fill(jetFound, fMcJetTree.jetpt);
+      else if (centralitybinforefficiency == 2) effJetRec40_80->Fill(jetFound, fMcJetTree.jetpt);
     
     
   }
-  if (fPrintLevel)
-    cout << "Filling Tree complete" << endl;
-}
+      if (fPrintLevel) cout << "Filling Tree complete" << endl;
+  }
 
-Double_t StHIOverlayAngularities::GetTowerCalibEnergy(Int_t TowerId){
+  Double_t StHIOverlayAngularities::GetTowerCalibEnergy(Int_t TowerId){
   //Function calculates the calibrated energy of a tower
 
   //Loading of the tower
