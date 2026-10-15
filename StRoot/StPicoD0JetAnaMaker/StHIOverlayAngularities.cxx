@@ -276,6 +276,10 @@ OutputTreeInit();
     "pPureMcNeutralEnergyEtaPhi", "Mean calibrated MC tower energy;"
     "#phi_{tower};#eta_{tower};#LTE^{calib}#GT [GeV]",
     120, -TMath::Pi(), TMath::Pi(), 40, -1.0, 1.0);
+  hMcVtxZ    = new TH1D("hMcVtxZ",    ";McPVtx.z() [cm]; Count", 100, -10, 10);
+  hMcVtxR    = new TH2D("hMcVtxR",    ";McPVtx.x() [cm]; PVtx.y() [cm]", 100, -3, 3, 100, -3, 3);
+  hMcVzDiff  = new TH1D("hMcVzDiff",  "V_{z}^{MC} - V_{z}^{VPD,MC};V_{z}^{MC} - V_{z}^{VPD,MC} [cm];Count", 80, -4.0, 4.0);
+    
   // ======================== Jet constituents histograms ========================
   hJetTracksDedx = new TH2D("hJetTracksDedx", 
     "Track dE/dx vs signed |p|; sign(q) #times |p| [GeV/c];dE/dx [keV/cm]", 
@@ -754,6 +758,9 @@ Int_t StHIOverlayAngularities::Finish()
 
     TDirectory* dirMcEvent = fout->mkdir("mcEvent");
     dirMcEvent->cd();
+    hMcVtxZ->Write();
+    hMcVtxR->Write();
+    hMcVzDiff->Write();
     hPureMcNeutralEtaPhi->Write();
     hPureMcNeutralAdcEtaPhi->Write();
     pPureMcNeutralAdcEtaPhi->Write();
@@ -1207,6 +1214,15 @@ if (fRunNumber != previousPedestalRun) {
     
 
     fMCPico->GetEntry(randomMcEvent); // load this MC event into memory
+    
+    //MC QA - regardless of good D0s
+    if (Event_ > 0) {
+      hMcVtxZ->Fill(Event_mPrimaryVertexZ[0]);
+      hMcVtxR->Fill(Event_mPrimaryVertexX[0], Event_mPrimaryVertexY[0]);
+      hMcVzDiff->Fill(Event_mPrimaryVertexZ[0] - Event_mVzVpd[0]);
+    }   
+    
+
     
     if (fPrintLevel)
       cout << "======================= Event Number After MC = " << Event_mEventId[0] << "\t" << counterEvent << "=======================" << endl;
@@ -3037,7 +3053,7 @@ Int_t StHIOverlayAngularities::GetMatchedRecoTrackFromMCTrack(const Int_t &McTra
     Double_t nHitsRatio = 1.0 * nHitsFit / nHitsMax;
 
     // additional quality cuts for tracks
-    //if (dca > fJetTrackDCAcut) continue; //Not used because of discrepancy between DCA and DCA_z
+    //if (dca > fJetTrackDCAcut) continue; //// Do not apply DCA here; this function only identifies reconstructed D0 daughters.
 
     if (nHitsFit < fTracknHitsFit) continue;
 
@@ -3109,6 +3125,7 @@ void StHIOverlayAngularities::ReadTreeMc()
   fMCPico->SetBranchStatus("Event.mPrimaryVertexX", true);
   fMCPico->SetBranchStatus("Event.mPrimaryVertexY", true);
   fMCPico->SetBranchStatus("Event.mPrimaryVertexZ", true);
+  fMCPico->SetBranchStatus("Event.mVzVpd", true);
 
   fMCPico->SetBranchStatus("Track", true);
   fMCPico->SetBranchStatus("Track.mGMomentumX", true);
@@ -3160,6 +3177,7 @@ void StHIOverlayAngularities::ReadTreeMc()
   fMCPico->SetBranchAddress("Event.mPrimaryVertexX", Event_mPrimaryVertexX, &b_Event_mPrimaryVertexX);
   fMCPico->SetBranchAddress("Event.mPrimaryVertexY", Event_mPrimaryVertexY, &b_Event_mPrimaryVertexY);
   fMCPico->SetBranchAddress("Event.mPrimaryVertexZ", Event_mPrimaryVertexZ, &b_Event_mPrimaryVertexZ);
+  fMCPico->SetBranchAddress("Event.mVzVpd", Event_mVzVpd, &b_Event_mVzVpd);
 
   fMCPico->SetBranchAddress("Track", &Track_, &b_Track_);
   fMCPico->SetBranchAddress("Track.mGMomentumX", Track_mGMomentumX, &b_Track_mGMomentumX);

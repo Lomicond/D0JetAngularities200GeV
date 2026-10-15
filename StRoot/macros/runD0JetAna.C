@@ -149,7 +149,7 @@ void runD0JetAna(string pico="testPico.list",
    picoD0JetAnaMaker->setChargedTracksEta(1.); // abs(eta) <
    picoD0JetAnaMaker->setChargedTracksNHitsFit(15); // nHitsFit >= 
    picoD0JetAnaMaker->setChargedTracksNHitsRatio(0.52); // nHitsFit/nHitsMax >=
-   picoD0JetAnaMaker->setChargedTracksDCA(3.0); // abs(DCA) < [cm]
+   picoD0JetAnaMaker->setChargedTracksDCA(1.0); // abs(DCA) < [cm] //CHANGED
    picoD0JetAnaMaker->setChargedTracksMass(0.13957); //pion+ 0.13957 [GeV/c^2]
    
    //Tower inputs
@@ -193,7 +193,10 @@ void runD0JetAna(string pico="testPico.list",
    picoD0JetAnaMaker->setJetBgPhiModulation(false);
 
 
+   picoDstMaker->SetStatus("TrackCovMatrix*", 0);
    chain->Init();
+   picoDstMaker->chain()->SetBranchStatus("TrackCovMatrix*", 0);
+   cout << "CHECK TrackCovMatrix status = " << picoDstMaker->chain()->GetBranchStatus("TrackCovMatrix.mCorr[10]") << endl;
   
    if(!Testing) nEntries = picoDstMaker->chain()->GetEntries();  
    else if (nEntries>picoDstMaker->chain()->GetEntries()) nEntries = picoDstMaker->chain()->GetEntries();

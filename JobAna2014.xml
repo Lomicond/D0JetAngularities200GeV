@@ -1,4 +1,4 @@
-<job name="D0JetAnalysis" minFilesPerProcess="18" maxFilesPerProcess="25" simulateSubmission="false" fileListSyntax="xrootd" >
+<job name="D0JetAnalysis" minFilesPerProcess="15" maxFilesPerProcess="25" simulateSubmission="false" fileListSyntax="xrootd" >
 	
 <!--<input URL="catalog:star.bnl.gov?production=P16ij,trgsetupname=AuAu_200_production_2016,filename~st_physics,filetype=daq_reco_picoDst,library=SL20c,runnumber[]17062049-17179012,storage!=hpss" preferStorage="local" singleCopy="true" nFiles="5000" /> -->
 <!-- <input URL="filelist:/gpfs01/star/pwg/lomicond/Ondrej/Jets/Simulation_D0_Jets_cleared/lists/Run2014_lowmid_s2.txt" nFiles="2500" /> -->
@@ -24,7 +24,12 @@
 	cons
 	cons
 	setenv FASTJET /gpfs01/star/pwg/lomicond/Ondrej/Jets/Alma9FastJet/fastjet-install	
-	root4star -b -l -q runD0JetAna.C\(\"$FILELIST\",\"D0_Output_2014_lowMid_${JOBINDEX}.root\",2014,false\) &gt;&amp; Log_2014_lowMid_${JOBINDEX}.log
+	
+	mkdir -p "${SUBMITTINGDIRECTORY}/log"
+
+	<!--root4star -b -l -q runD0JetAna.C\(\"$FILELIST\",\"D0_Output_2014_lowMid_${JOBINDEX}.root\",2014,false\) &gt;&amp; Log_2014_lowMid_${JOBINDEX}.log-->
+
+  root4star -b -l -q runD0JetAna.C\(\"$FILELIST\",\"D0_Output_2014_lowMid_${JOBINDEX}.root\",2014,false\) &gt;&amp;! "${SUBMITTINGDIRECTORY}/log/Log_2014_lowMid_${JOBINDEX}.log"
 </command>
 
 	<ResourceUsage>

@@ -141,12 +141,13 @@ void runD0JetSim(const Char_t *inputFile = "",
     HIOverlayMaker->SetMcChargedPart(0.13957); //D0 = 1.86484, GAMMA = 0, PION_PLUS = 0.13957
     HIOverlayMaker->SetJetTracknHitsFit(15); //=>
     HIOverlayMaker->SetJetTracknHitsRatio(0.52); //=>
-    HIOverlayMaker->SetJetTrackDCAcut(3.0); // <= cm
+    HIOverlayMaker->SetJetTrackDCAcut(1.0); // <= cm //CHANGED!!!
 
     //Towers
     HIOverlayMaker->SetMinJetTowerET(0.2); 
     HIOverlayMaker->setTowerBadList(0); //0 - 2014 Hanseul's //1 - 2014 Neil's //JetInfo.h
     HIOverlayMaker->setTowerCalibrEnergy(true);
+    HIOverlayMaker->setMCTowerCalibrEnergy(false);
     HIOverlayMaker->SetNeutralPart(0); //D0 = 1.86484, GAMMA = 0, PION_PLUS = 0.13957 //TEST
     HIOverlayMaker->SetMcNeutralPart(0);
     
@@ -168,7 +169,7 @@ void runD0JetSim(const Char_t *inputFile = "",
     HIOverlayMaker->DoTrackingEfficiency(1.);
     
     //Different level cuts                       	//mc	     //mcSmeared      //reco     //value
-    HIOverlayMaker->setJetFractionNeutralToJetPt(	false, 		true, 		true,	    0.95    	); //
+    HIOverlayMaker->setJetFractionNeutralToJetPt(	false, 		false, 		false,	    0.95    	); //
     HIOverlayMaker->setJetMinPt(			false, 		false, 		false,	    1       	); // >= [GeV/c]
     HIOverlayMaker->setJetMinArea(			false, 		false, 		false,	    0      	); // >= value*pi*R^2
     HIOverlayMaker->setJetMinAbsEta(			false, 		false, 		false,	 1.-jetRadius   ); // abs(value) <= 

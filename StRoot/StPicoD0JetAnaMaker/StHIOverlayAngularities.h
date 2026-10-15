@@ -385,6 +385,7 @@ public:
   Float_t Event_mPrimaryVertexX[kMaxEvent];
   Float_t Event_mPrimaryVertexY[kMaxEvent];
   Float_t Event_mPrimaryVertexZ[kMaxEvent];
+  Float_t Event_mVzVpd[kMaxEvent];
 
   Int_t Track_;
   Float_t Track_mGMomentumX[kMaxTrack]; // [Track_]
@@ -439,6 +440,7 @@ public:
   TBranch *b_Event_mPrimaryVertexX; //!
   TBranch *b_Event_mPrimaryVertexY; //!
   TBranch *b_Event_mPrimaryVertexZ; //!
+  TBranch *b_Event_mVzVpd; //!
 
   TBranch *b_Track_;            //!
   TBranch *b_Track_mGMomentumX; //!
@@ -607,6 +609,9 @@ public:
   TProfile2D* pPureMcNeutralEnergyEtaPhi;
   TH2D* hMcJetConstMom;
   TH2D* hMcJetConstTheta;
+  TH1D* hMcVtxZ;
+  TH2D* hMcVtxR;
+  TH1D* hMcVzDiff;
 
   // Jet constituents:
   TH2D* hJetTracksDedx;
