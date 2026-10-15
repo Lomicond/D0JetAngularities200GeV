@@ -109,7 +109,7 @@ void runD0JetSim(const Char_t *inputFile = "",
     
     // -------------- MC events ---------------------------
     HIOverlayMaker->setAllMcSeedsToEventId(false); //True -> seed = eventId+runId //
-    HIOverlayMaker->setAditionalTreeInfo(false); //MC Pion+Kaon branches
+    HIOverlayMaker->setAditionalTreeInfo(false); //MC Pion+Kaon and multiplicity branches
     // -------------- Run cuts ---------------------------
     HIOverlayMaker->setFRunBadlist(0); //0 - 2014 Hanseul's //1 - 2014 Neil's //JetInfo.h
  
@@ -176,7 +176,7 @@ void runD0JetSim(const Char_t *inputFile = "",
     HIOverlayMaker->setJetMinAbsEta(			false, 		false, 		false,	 1.-jetRadius   ); // abs(value) <= 
 
    //Strategy for jet background subtraction
-   HIOverlayMaker->SetBgSubtraction(12); //1 - Area based method + jet shape method // 2 - ICS // 12 or 21 - both
+   HIOverlayMaker->SetBgSubtraction(2); //1 - Area based method + jet shape method // 2 - ICS // 12 or 21 - both
    HIOverlayMaker->setJetNHardestSkipped(2, 2); // First: 0-10%; Second: 10-80% //CHANGE
    HIOverlayMaker->setPeriphOccupancyFactor(true); //Occupancy factor for rho (only 40-80%)
    HIOverlayMaker->SetPhiBgModulation(false); 

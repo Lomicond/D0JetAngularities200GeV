@@ -55,6 +55,8 @@ struct StJetTreeStruct
     float jetradius;
     float jetenergy;
     float jetnef;
+    float jetrapidity;
+    float jetmass;
     float fSigValforjet;
     float jethighesttrackpt;
     int numberofconstituents;
@@ -145,6 +147,8 @@ struct StJetTreeStruct
         jetcorrectedpt = -999;
         jeteta = -999;
         jetphi = -999;
+        jetrapidity = -999;
+        jetmass = -999;
 
         jetarea = -999;
         jetradius = -999;

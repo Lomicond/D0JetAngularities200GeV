@@ -3031,6 +3031,9 @@ StJet *StHIOverlayAngularities::DoesItHaveAGoodD0Jet(vector<TLorentzVector> &eve
     //Save the D0-jet
     StJet *jet = new StJet(jets_incl[D0JetIndex].perp(), jets_incl[D0JetIndex].eta(), jets_incl[D0JetIndex].phi(), jets_incl[D0JetIndex].m());
     
+    // Neutral scalar pT sum / vector jet pT; D0 excluded from numerator
+    jet->SetNEF(neutral_pt / jet_pt);
+    
     if (fPrintLevel) cout << "Jet Found with pT eta phi = " << jet->Pt() << "\t" << jet->Eta() << "\t" << jet->Phi() << endl;
 
     //Save D0 jet index
@@ -3328,9 +3331,10 @@ void StHIOverlayAngularities::OutputTreeInit()
   }
   outputTree->Branch("eventMaxPtTrack", &fRecoJetTree.eventMaxPtTrack, "eventMaxPtTrack/F");
   
-  outputTree->Branch("mcRefMult", &fMcJetTree.refmult, "mcrefmult/F");
-  outputTree->Branch("mcRecoRefMult", &fMcJetTree.grefmult, "recorefmult/F");
-
+  if(fSetAditionalTreeInfo){
+    outputTree->Branch("mcRefMult", &fMcJetTree.refmult, "mcrefmult/F");
+    outputTree->Branch("mcRecoRefMult", &fMcJetTree.grefmult, "recorefmult/F");
+  }
   
   // outputTree->Branch("McPrimaryVertex", &fMcJetTree.primaryvertex);
   // outputTree->Branch("RecoPrimaryVertex", &fRecoJetTree.primaryvertex);
@@ -3352,7 +3356,7 @@ void StHIOverlayAngularities::OutputTreeInit()
   outputTree->Branch("mcSmearedD0Pt", &fRecoJetTree.d0pt, "mcSmearedD0Pt/F");
   outputTree->Branch("mcSmearedD0Eta", &fRecoJetTree.d0eta, "mcSmearedD0Eta/F");
   outputTree->Branch("mcSmearedD0Phi", &fRecoJetTree.d0phi, "mcSmearedD0Phi/F");
-  outputTree->Branch("mcSmearedD0Rapidity", &fMcJetTree.d0rapidity, "mcSmearedD0Rapidity/F");
+  outputTree->Branch("mcSmearedD0Rapidity", &fRecoJetTree.d0rapidity, "mcSmearedD0Rapidity/F");
   
   if(fSetAditionalTreeInfo){
     outputTree->Branch("mcSmearedPionPt", &fRecoJetTree.pionpt, "mcSmearedPionPt/F");
@@ -3377,6 +3381,8 @@ void StHIOverlayAngularities::OutputTreeInit()
   outputTree->Branch("mcJetMomDisp", &fMcJetTree.dispersion, "mcJetMomDisp/F");
   outputTree->Branch("mcJetD0Z", &fMcJetTree.d0z, "mcJetD0Z/F");
   outputTree->Branch("mcJetD0DeltaR", &fMcJetTree.d0DeltaR, "mcJetD0DeltaR/F");
+  outputTree->Branch("mcJetRapidity", &fMcJetTree.jetrapidity, "mcJetRapidity/F");
+  outputTree->Branch("mcJetMass", &fMcJetTree.jetmass, "mcJetMass/F");
   
   if (fSetAditionalTreeInfo){
     outputTree->Branch("mcSmearedJetPt", &fMcRecoJetTree.jetpt, "mcSmearedJetPt/F"); 
@@ -3433,6 +3439,9 @@ void StHIOverlayAngularities::OutputTreeInit()
     outputTree->Branch("ICS_recoJetMomDisp", &fICS_RecoJetTree.dispersion, "ICS_recoJetMomDisp/F");
     outputTree->Branch("ICS_recoJetD0Z", &fICS_RecoJetTree.d0z, "ICS_recoJetD0Z/F");
     outputTree->Branch("ICS_recoJetD0DeltaR", &fICS_RecoJetTree.d0DeltaR, "ICS_recoJetD0DeltaR/F");
+    outputTree->Branch("ICS_recoJetRapidity", &fICS_RecoJetTree.jetrapidity, "ICS_recoJetRapidity/F");
+    outputTree->Branch("ICS_recoJetMass", &fICS_RecoJetTree.jetmass, "ICS_recoJetMass/F");
+    outputTree->Branch("ICS_recoJetNeutralPtFrac", &fICS_RecoJetTree.jetnef, "ICS_recoJetNeutralPtFrac/F");
 
   }
   
@@ -3490,10 +3499,14 @@ void StHIOverlayAngularities::FillTree(const Int_t &numberOfD0Events)
     TVector3 recoKaon = fMcRecoD0Information[iMcD0Event].second;
 
     TVector3 recoD0 = recoPion + recoKaon;
-
-    fRecoJetTree.d0pt = recoD0.Perp();
-    fRecoJetTree.d0eta = recoD0.PseudoRapidity();
-    fRecoJetTree.d0phi = standardPhi(recoD0.Phi());
+    
+    TLorentzVector recoD04V;
+    recoD04V.SetXYZM(recoD0.X(), recoD0.Y(), recoD0.Z(), fMcD0Mass);
+   
+    fRecoJetTree.d0pt = recoD04V.Perp();
+    fRecoJetTree.d0eta = recoD04V.PseudoRapidity();
+    fRecoJetTree.d0phi = standardPhi(recoD04V.Phi());
+    fRecoJetTree.d0rapidity = recoD04V.Rapidity();
 
     fRecoJetTree.pionpt = recoPion.Perp();
     fRecoJetTree.pioneta = recoPion.PseudoRapidity();
@@ -3911,6 +3924,9 @@ void StHIOverlayAngularities::FillJet(StJet *jet, StJetTreeStruct &jetTree, cons
   jetTree.jetphi = jet->Phi();
   jetTree.jetarea = jet->Area();
   jetTree.jetenergy = jet->E();
+  jetTree.jetrapidity = jet->Y();
+  jetTree.jetmass = jet->M();
+  jetTree.jetnef = jet->NEF();
   jetTree.numberofconstituents = jet->GenNumberOfCons(false, false); //false = ignore ghost particles and particles with pT < 0.00001
   jetTree.lambda_1_half = jet->GetAngularityLambda(1., 0.5, 0.4);
   jetTree.lambda_1_1 = jet->GetAngularityLambda(1., 1., 0.4);
