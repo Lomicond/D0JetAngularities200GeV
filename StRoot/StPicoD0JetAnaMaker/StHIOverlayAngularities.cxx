@@ -284,9 +284,51 @@ OutputTreeInit();
   hMcNTracks = new TH1D("hMcNTracks",";N_{MC}; Count", 501, -0.5, 500.5);
   hMcTrackPt = new TH1D("hMcTrackPt",";p_{T}^{MC} [GeV/c]; Count", 200, 0, 40);
   hMcGeantPid = new TH1D("hMcGeantPid",";p_{T}^{MC} [GeV/c]; Count", 51, -0.5, 50.5);
+  hMcGeantPid->GetXaxis()->CenterTitle(kTRUE);
+  
+    // Array index = GEANT ID
+    const char* geantLabels[51] = {
+      "0",                                          // 0
+      "#gamma", "e^{+}", "e^{-}", "#nu",             // 1-4
+      "#mu^{+}", "#mu^{-}",                          // 5-6
+      "#pi^{0}", "#pi^{+}", "#pi^{-}",               // 7-9
+      "K_{L}^{0}", "K^{+}", "K^{-}",                 // 10-12
+      "n", "p", "#bar{p}", "K_{S}^{0}",              // 13-16
+      "#eta", "#Lambda",                            // 17-18
+      "#Sigma^{+}", "#Sigma^{0}", "#Sigma^{-}",      // 19-21
+      "#Xi^{0}", "#Xi^{-}", "#Omega^{-}",            // 22-24
+      "#bar{n}", "#bar{#Lambda}",                    // 25-26
+      "#bar{#Sigma}^{-}", "#bar{#Sigma}^{0}",
+      "#bar{#Sigma}^{+}",                            // 27-29
+      "#bar{#Xi}^{0}", "#bar{#Xi}^{+}",
+      "#bar{#Omega}^{+}",                            // 30-32
+      "#tau^{+}", "#tau^{-}",                        // 33-34
+      "D^{+}", "D^{-}", "D^{0}", "#bar{D}^{0}",       // 35-38
+      "D_{s}^{+}", "D_{s}^{-}", "#Lambda_{c}^{+}",    // 39-41
+      "W^{+}", "W^{-}", "Z^{0}",                     // 42-44
+      "d", "t", "#alpha", "geantino", "^{3}He",
+      "#gamma_{Ch}"                                 // 45-50
+    };
+  
+  TAxis* pidAxis = hMcGeantPid->GetXaxis();
+  pidAxis->SetTitle("GEANT particle");
+
+  for (Int_t bin = 1; bin <= pidAxis->GetNbins(); ++bin) {
+    const Int_t id = TMath::Nint(pidAxis->GetBinCenter(bin));
+
+    TString label = TString::Format("%d", id);
+    if (id >= 0 && id <= 50 && geantLabels[id])
+      label = geantLabels[id];
+
+    pidAxis->SetBinLabel(bin, label.Data());
+  }
+
+  hMcGeantPid->LabelsOption("v", "X");
+  pidAxis->SetLabelSize(0.025);
+  
   hMcD0Pt = new TH1D("hMcD0Pt",";p_{T,D^{0}}^{MC} [GeV/c]; Count", 40, 0, 20);
   hMcND0 = new TH1D("hMcND0",";N_{MC,D^{0}}; Count", 10, 0.5, 10.5);
-  hMcND0Accepted = new TH1D("hMcND0Accepted",";N_{MC,D^{0}}^{Good}; Count", 11, -0.5, 10.5);
+  hMcND0Accepted = new TH1D("hMcND0Accepted", Form("Truth D^{0}+#bar{D}^{0} passing D^{0} cuts,|#eta_{jet}^{true}| < %.2f;N_{MC,D^{0}}^{accepted};Count", 1.0 - fJetRad), 11, -0.5, 10.5);
     
   // ======================== Jet constituents histograms ========================
   hJetTracksDedx = new TH2D("hJetTracksDedx", 
@@ -1292,9 +1334,6 @@ if (fRunNumber != previousPedestalRun) {
       if (fSetMcAbsEtaD0 && (abs(eta) > fMcAbsEtaD0)) continue;
       //Rapidity D0 cut //not used if fMcAbsEtaD0 == -1
       if (fSetMcAbsRapD0 && (abs(rapidity) >= fMcAbsRapD0)) continue;
-      
-      
-      ++nMcD0Accepted;
         
       if (fPrintLevel) cout << "MC D0 Found = " << pt << "\t" << eta << "\t" << phi << endl;
       
@@ -1338,13 +1377,12 @@ if (fRunNumber != previousPedestalRun) {
     
     //QA
     hMcND0->Fill(nMcD0);
-    hMcND0Accepted->Fill(nMcD0Accepted);
     
     assert((pionids.size() == kaonids.size()) && "Same number of kaons and pions \n");
     
     if (fPrintLevel) cout << "=============== Number of D0s =============== " << vertexids.size() << "\t" << pionids.size() << endl;
 
-    if (vertexids.size() == 0) continue; // While loop continues.
+    if (vertexids.empty()) {hMcND0Accepted->Fill(0); continue;}// While loop continues.
 
     //========================================================================================//
     //========================================================================================//
@@ -1559,6 +1597,9 @@ if (fRunNumber != previousPedestalRun) {
         continue;
       }
       
+      //Only QA
+      if (TMath::Abs(jetMc->Eta()) < 1.0 - fJetRad) ++nMcD0Accepted;
+      
       jetMc->GetMomentumOfConst(hMcJetConstMom);
       jetMc->GetThetaOfConst(hMcJetConstTheta);
       fMcJet[counterEvent] = jetMc;
@@ -1643,8 +1684,10 @@ if (fRunNumber != previousPedestalRun) {
         }
       }
       counterEvent++; // Since one MC event can be invoked multiple times (due to having multiple D0s, this step is necessary.)
-      ////cerr << "Event započítán" << endl;
+
     }
+    
+    hMcND0Accepted->Fill(nMcD0Accepted);
     eventsconsidered++; // loop over D0s in event
     
 

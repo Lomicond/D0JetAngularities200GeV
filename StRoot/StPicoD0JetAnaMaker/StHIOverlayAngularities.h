@@ -205,7 +205,7 @@ protected:
 
   // Output file name string
   TString mOutName;
-
+  
 private:
   StRefMultCorr* mGRefMultCorrUtil;
   StCentMaker *mCentMaker;  // Centrality maker object
