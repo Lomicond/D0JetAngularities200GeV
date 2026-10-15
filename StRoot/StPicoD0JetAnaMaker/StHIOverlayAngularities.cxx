@@ -111,6 +111,7 @@ StHIOverlayAngularities::StHIOverlayAngularities(const char *name,
   fSetMcAbsEtaD0 = false;
   fMcAbsEtaD0 = 1;
   fSetMcAbsRapD0 = false;
+  fSetAditionalTreeInfo = false;
   fMcAbsRapD0 = 0.6;
   fMcD0Mass = 0;
   fMcChargedPart = 0;
@@ -327,7 +328,7 @@ OutputTreeInit();
   pidAxis->SetLabelSize(0.025);
   
   hMcD0Pt = new TH1D("hMcD0Pt",";p_{T,D^{0}}^{MC} [GeV/c]; Count", 40, 0, 20);
-  hMcND0 = new TH1D("hMcND0",";N_{MC,D^{0}}; Count", 10, 0.5, 10.5);
+  hMcND0 = new TH1D("hMcND0",";N_{MC,D^{0}}; Count", 11, -0.5, 10.5);
   hMcND0Accepted = new TH1D("hMcND0Accepted", Form("Truth D^{0}+#bar{D}^{0} passing D^{0} cuts,|#eta_{jet}^{true}| < %.2f;N_{MC,D^{0}}^{accepted};Count", 1.0 - fJetRad), 11, -0.5, 10.5);
     
   // ======================== Jet constituents histograms ========================
@@ -3337,22 +3338,30 @@ void StHIOverlayAngularities::OutputTreeInit()
   outputTree->Branch("mcD0Pt", &fMcJetTree.d0pt, "mcD0Pt/F");
   outputTree->Branch("mcD0Eta", &fMcJetTree.d0eta, "mcD0Eta/F");
   outputTree->Branch("mcD0Phi", &fMcJetTree.d0phi, "mcD0Phi/F");
-  outputTree->Branch("mcPionPt", &fMcJetTree.pionpt, "mcPionPt/F");
-  outputTree->Branch("mcPionEta", &fMcJetTree.pioneta, "mcPionEta/F");
-  outputTree->Branch("mcPionPhi", &fMcJetTree.pionphi, "mcPionPhi/F");
-  outputTree->Branch("mcKaonPt", &fMcJetTree.kaonpt, "mcKaonPt/F");
-  outputTree->Branch("mcKaonEta", &fMcJetTree.kaoneta, "mcKaonEta/F");
-  outputTree->Branch("mcKaonPhi", &fMcJetTree.kaonphi, "mcKaonPhi/F");
+  outputTree->Branch("mcD0Rapidity", &fMcJetTree.d0rapidity, "mcD0Rapidity/F");
+  
+  if(fSetAditionalTreeInfo){
+    outputTree->Branch("mcPionPt", &fMcJetTree.pionpt, "mcPionPt/F");
+    outputTree->Branch("mcPionEta", &fMcJetTree.pioneta, "mcPionEta/F");
+    outputTree->Branch("mcPionPhi", &fMcJetTree.pionphi, "mcPionPhi/F");
+    outputTree->Branch("mcKaonPt", &fMcJetTree.kaonpt, "mcKaonPt/F");
+    outputTree->Branch("mcKaonEta", &fMcJetTree.kaoneta, "mcKaonEta/F");
+    outputTree->Branch("mcKaonPhi", &fMcJetTree.kaonphi, "mcKaonPhi/F");
+  }
 
   outputTree->Branch("mcSmearedD0Pt", &fRecoJetTree.d0pt, "mcSmearedD0Pt/F");
   outputTree->Branch("mcSmearedD0Eta", &fRecoJetTree.d0eta, "mcSmearedD0Eta/F");
   outputTree->Branch("mcSmearedD0Phi", &fRecoJetTree.d0phi, "mcSmearedD0Phi/F");
-  outputTree->Branch("mcSmearedPionPt", &fRecoJetTree.pionpt, "mcSmearedPionPt/F");
-  outputTree->Branch("mcSmearedPionEta", &fRecoJetTree.pioneta, "mcSmearedPionEta/F");
-  outputTree->Branch("mcSmearedPionPhi", &fRecoJetTree.pionphi, "mcSmearedPionPhi/F");
-  outputTree->Branch("mcSmearedKaonPt", &fRecoJetTree.kaonpt, "mcSmearedKaonPt/F");
-  outputTree->Branch("mcSmearedKaonEta", &fRecoJetTree.kaoneta, "mcSmearedKaonEta/F");
-  outputTree->Branch("mcSmearedKaonPhi", &fRecoJetTree.kaonphi, "mcSmearedKaonPhi/F");
+  outputTree->Branch("mcSmearedD0Rapidity", &fMcJetTree.d0rapidity, "mcSmearedD0Rapidity/F");
+  
+  if(fSetAditionalTreeInfo){
+    outputTree->Branch("mcSmearedPionPt", &fRecoJetTree.pionpt, "mcSmearedPionPt/F");
+    outputTree->Branch("mcSmearedPionEta", &fRecoJetTree.pioneta, "mcSmearedPionEta/F");
+    outputTree->Branch("mcSmearedPionPhi", &fRecoJetTree.pionphi, "mcSmearedPionPhi/F");
+    outputTree->Branch("mcSmearedKaonPt", &fRecoJetTree.kaonpt, "mcSmearedKaonPt/F");
+    outputTree->Branch("mcSmearedKaonEta", &fRecoJetTree.kaoneta, "mcSmearedKaonEta/F");
+    outputTree->Branch("mcSmearedKaonPhi", &fRecoJetTree.kaonphi, "mcSmearedKaonPhi/F");
+  }
 
   outputTree->Branch("mcJetPt", &fMcJetTree.jetpt, "mcJetPt/F");
   outputTree->Branch("mcJetEta", &fMcJetTree.jeteta, "mcJetEta/F");
@@ -3369,20 +3378,22 @@ void StHIOverlayAngularities::OutputTreeInit()
   outputTree->Branch("mcJetD0Z", &fMcJetTree.d0z, "mcJetD0Z/F");
   outputTree->Branch("mcJetD0DeltaR", &fMcJetTree.d0DeltaR, "mcJetD0DeltaR/F");
   
-  outputTree->Branch("mcSmearedJetPt", &fMcRecoJetTree.jetpt, "mcSmearedJetPt/F"); 
-  outputTree->Branch("mcSmearedJetEta", &fMcRecoJetTree.jeteta, "mcSmearedJetEta/F");
-  outputTree->Branch("mcSmearedJetPhi", &fMcRecoJetTree.jetphi, "mcSmearedJetPhi/F");
-  outputTree->Branch("mcSmearedJetE", &fMcRecoJetTree.jetenergy, "mcSmearedJetE/F");
-  outputTree->Branch("mcSmearedJetArea", &fMcRecoJetTree.jetarea, "mcSmearedJetArea/F");
-  outputTree->Branch("mcSmearedJetNConst", &fMcRecoJetTree.numberofconstituents, "mcSmearedJetNConst/I");
-  outputTree->Branch("mcSmearedJetLambda1_0_5", &fMcRecoJetTree.lambda_1_half, "mcSmearedJetLambda1_0_5/F");
-  outputTree->Branch("mcSmearedJetLambda1_1", &fMcRecoJetTree.lambda_1_1, "mcSmearedJetLambda1_1/F");
-  outputTree->Branch("mcSmearedJetLambda1_1_5", &fMcRecoJetTree.lambda_1_1half, "mcSmearedJetLambda1_1_5/F");
-  outputTree->Branch("mcSmearedJetLambda1_2", &fMcRecoJetTree.lambda_1_2, "mcSmearedJetLambda1_2/F");
-  outputTree->Branch("mcSmearedJetLambda1_3", &fMcRecoJetTree.lambda_1_3, "mcSmearedJetLambda1_3/F");
-  outputTree->Branch("mcSmearedJetMomDisp", &fMcRecoJetTree.dispersion, "mcSmearedJetMomDisp/F");
-  outputTree->Branch("mcSmearedJetD0Z", &fMcRecoJetTree.d0z, "d0z/F");
-  outputTree->Branch("mcSmearedJetD0DeltaR", &fMcRecoJetTree.d0DeltaR, "mcJetSmearedD0DeltaR/F");
+  if (fSetAditionalTreeInfo){
+    outputTree->Branch("mcSmearedJetPt", &fMcRecoJetTree.jetpt, "mcSmearedJetPt/F"); 
+    outputTree->Branch("mcSmearedJetEta", &fMcRecoJetTree.jeteta, "mcSmearedJetEta/F");
+    outputTree->Branch("mcSmearedJetPhi", &fMcRecoJetTree.jetphi, "mcSmearedJetPhi/F");
+    outputTree->Branch("mcSmearedJetE", &fMcRecoJetTree.jetenergy, "mcSmearedJetE/F");
+    outputTree->Branch("mcSmearedJetArea", &fMcRecoJetTree.jetarea, "mcSmearedJetArea/F");
+    outputTree->Branch("mcSmearedJetNConst", &fMcRecoJetTree.numberofconstituents, "mcSmearedJetNConst/I");
+    outputTree->Branch("mcSmearedJetLambda1_0_5", &fMcRecoJetTree.lambda_1_half, "mcSmearedJetLambda1_0_5/F");
+    outputTree->Branch("mcSmearedJetLambda1_1", &fMcRecoJetTree.lambda_1_1, "mcSmearedJetLambda1_1/F");
+    outputTree->Branch("mcSmearedJetLambda1_1_5", &fMcRecoJetTree.lambda_1_1half, "mcSmearedJetLambda1_1_5/F");
+    outputTree->Branch("mcSmearedJetLambda1_2", &fMcRecoJetTree.lambda_1_2, "mcSmearedJetLambda1_2/F");
+    outputTree->Branch("mcSmearedJetLambda1_3", &fMcRecoJetTree.lambda_1_3, "mcSmearedJetLambda1_3/F");
+    outputTree->Branch("mcSmearedJetMomDisp", &fMcRecoJetTree.dispersion, "mcSmearedJetMomDisp/F");
+    outputTree->Branch("mcSmearedJetD0Z", &fMcRecoJetTree.d0z, "d0z/F");
+    outputTree->Branch("mcSmearedJetD0DeltaR", &fMcRecoJetTree.d0DeltaR, "mcJetSmearedD0DeltaR/F");
+  }
 
   if (fBgSubtraction == 1 || fBgSubtraction == 12 || fBgSubtraction == 21){
     outputTree->Branch("recoJetPt", &fRecoJetTree.jetpt, "jetpt/F");
@@ -3450,12 +3461,16 @@ void StHIOverlayAngularities::FillTree(const Int_t &numberOfD0Events)
     fRecoJetTree.eventMaxPtTrack = eventMaxPtTrack;
     TVector3 mcPion = fMcD0Information[iMcD0Event].first;
     TVector3 mcKaon = fMcD0Information[iMcD0Event].second;
-
     TVector3 mcD0 = mcPion + mcKaon;
+    
+    //For rapidity, we need 4-vector
+    TLorentzVector mcD04V; 
+    mcD04V.SetXYZM(mcD0.X(),mcD0.Y(), mcD0.Z(), fMcD0Mass);
 
-    fMcJetTree.d0pt = mcD0.Perp();
-    fMcJetTree.d0eta = mcD0.PseudoRapidity();
-    fMcJetTree.d0phi = standardPhi(mcD0.Phi());
+    fMcJetTree.d0pt = mcD04V.Perp();
+    fMcJetTree.d0eta = mcD04V.PseudoRapidity();
+    fMcJetTree.d0rapidity = mcD04V.Rapidity();
+    fMcJetTree.d0phi = standardPhi(mcD04V.Phi());
 
     if (fPrintLevel)
       cout << "MC D0 Saved = " << fMcJetTree.d0pt << "\t" << fMcJetTree.d0eta << "\t" << fMcJetTree.d0phi << endl;

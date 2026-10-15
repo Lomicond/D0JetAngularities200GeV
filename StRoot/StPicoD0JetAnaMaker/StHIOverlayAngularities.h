@@ -143,6 +143,7 @@ protected:
   Bool_t fSetMcAbsRapD0 = false;
   Double_t fMcAbsRapD0 = 0.6;
   Double_t fMcD0Mass;
+  Bool_t fSetAditionalTreeInfo = false;
 
   // Jet Constituents - Charged
   Double_t fMinJetTrackPt;       // min jet track transverse momentum cut
@@ -235,9 +236,14 @@ public:
     fMcAbsEtaD0 = mcEtaD0;
   }
 
-  virtual void setMcAbsRapD0(Bool_t enabled, Double_t maxAbsRap) {
-    fSetMcAbsRapD0 = enabled;
+  virtual void setMcAbsRapD0(Bool_t setMcRapD0, Double_t maxAbsRap) {
+    fSetMcAbsRapD0 = setMcRapD0;
     fMcAbsRapD0 = maxAbsRap;
+  }
+  
+  virtual void setAditionalTreeInfo(Bool_t setAditionalTreeInfoEnabled) {
+    fSetAditionalTreeInfo = setAditionalTreeInfoEnabled;
+
   }
 
   virtual void SetMcD0Mass(Double_t McD0Mass) { fMcD0Mass = McD0Mass; }

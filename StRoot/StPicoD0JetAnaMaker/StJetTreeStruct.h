@@ -83,6 +83,7 @@ struct StJetTreeStruct
     float d0pt;
     float d0phi;
     float d0eta;
+    float d0rapidity;
     float d0DeltaR;
     float ICS_d0DeltaR;
 
@@ -164,6 +165,7 @@ struct StJetTreeStruct
         d0pt = -999;
         d0phi = -999;
         d0eta = -999;
+        d0rapidity = -999;
         d0DeltaR = -999;
 
         pionpt = -999;

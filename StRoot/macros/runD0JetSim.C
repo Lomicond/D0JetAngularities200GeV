@@ -109,7 +109,7 @@ void runD0JetSim(const Char_t *inputFile = "",
     
     // -------------- MC events ---------------------------
     HIOverlayMaker->setAllMcSeedsToEventId(false); //True -> seed = eventId+runId //
-    
+    HIOverlayMaker->setAditionalTreeInfo(false); //MC Pion+Kaon branches
     // -------------- Run cuts ---------------------------
     HIOverlayMaker->setFRunBadlist(0); //0 - 2014 Hanseul's //1 - 2014 Neil's //JetInfo.h
  
