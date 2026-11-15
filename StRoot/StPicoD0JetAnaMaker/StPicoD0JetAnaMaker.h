@@ -141,7 +141,7 @@ class StPicoD0JetAnaMaker : public StMaker{
         void setChargedTracksMass(Float_t tmpChargedTracksMass);
         void setD0Mass(Bool_t tmpUseD0Mass, Double_t tmpD0Mass);
         void setJetEta(Bool_t tmpSetJetEta, Double_t tmpJetEta);
-        void setJetMaxNeutralPtFrac(Bool_t tmpSetJetMaxNeutralPtFrac, Double_t tmpJetMaxNeutralPtFrac);
+        void setJetMinLambda0(Bool_t tmpSetJetMinLambda0, Double_t tmpJetMaxNeutralPtFrac);
         void setJetNHardestSkipped(Int_t tmpJetNHardestSkipped_010, Int_t tmpJetNHardestSkipped_1080);
         void setJetBgPhiModulation(Bool_t tmpSetPhiModulation);
         void CalculateEventPlane();
@@ -221,7 +221,8 @@ class StPicoD0JetAnaMaker : public StMaker{
         Int_t nJetConst;
         Int_t nJetsInEvent;
         Float_t jetD0DeltaR;
-        Float_t jetNeutralPtFrac;
+        //Float_t jetNeutralPtFrac;
+        Float_t lambda1_0Raw;
         Float_t jetTrackPtSum;
 
         //ICS
@@ -241,7 +242,8 @@ class StPicoD0JetAnaMaker : public StMaker{
         Float_t ICS_z;
         Int_t ICS_nJetConst;
         Float_t ICS_jetD0DeltaR; 
-        Float_t ICS_jetNeutralPtFrac;
+        //Float_t ICS_jetNeutralPtFrac;
+        Float_t ICS_lambda1_0;
         Float_t ICS_jetTrackPtSum;   
 
         // Event histograms:
@@ -380,8 +382,8 @@ class StPicoD0JetAnaMaker : public StMaker{
         StFJWrapper *fjw;
         Bool_t fSetJetEta = false;
         Double_t fJetEta = 1. - 0.4;
-        Bool_t fSetJetMaxNeutralPtFrac = false;
-        Double_t fJetMaxNeutralPtFrac = 0.95;
+        Bool_t fSetJetMinLambda0 = false;
+        Double_t fJetMinLambda0 = 0.05;
 
         Bool_t fSetJetBgSub = true;
         Int_t fJetBgSubMethod = 2;
@@ -566,9 +568,9 @@ inline void StPicoD0JetAnaMaker::setJetBgPhiModulation(Bool_t tmpSetPhiModulatio
     fPhiModulation = tmpSetPhiModulation;
 }
 
-inline void StPicoD0JetAnaMaker::setJetMaxNeutralPtFrac(Bool_t tmpSetJetMaxNeutralPtFrac, Double_t tmpJetMaxNeutralPtFrac){
-    fSetJetMaxNeutralPtFrac = tmpSetJetMaxNeutralPtFrac;
-    fJetMaxNeutralPtFrac = tmpJetMaxNeutralPtFrac;
+inline void StPicoD0JetAnaMaker::setJetMinLambda0(Bool_t tmpSetJetMinLambda0, Double_t minLambda0){
+    fSetJetMinLambda0 = tmpSetJetMinLambda0;
+    fJetMinLambda0 = minLambda0;
 }
 
 inline void StPicoD0JetAnaMaker::setHadronCorr(Float_t corr) {

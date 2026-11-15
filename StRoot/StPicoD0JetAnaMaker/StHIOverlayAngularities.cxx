@@ -158,9 +158,9 @@ StHIOverlayAngularities::StHIOverlayAngularities(const char *name,
   mTowerEnergyTMin = 0.2;
   mHadronicCorrFrac = 1.;
 
-  fSetJetFracCut[0] = kTRUE;
-  fSetJetFracCut[1] = kTRUE;
-  fSetJetFracCut[2] = kTRUE;
+  fSetJetLambda0Cut[0] = kTRUE;
+  fSetJetLambda0Cut[1] = kTRUE;
+  fSetJetLambda0Cut[2] = kTRUE;
   
   fSetJetMinPtCut[0] = kTRUE;
   fSetJetMinPtCut[1] = kTRUE;
@@ -404,8 +404,8 @@ OutputTreeInit();
 
   hJetMcRecoConstCharge = new TH1D("hJetMcRecoConstCharge", 
     "Jet mc reco constituent charge;charge;Count", 3, -1.5, 1.5);
-  hFractionNeutralToJetPt = new TH1D("hFractionNeutralToJetPt", 
-    "; Fraction of Neutral to Jet p_{t}; Counts", 200, 0, 1);
+  /*hFractionNeutralToJetPt = new TH1D("hFractionNeutralToJetPt", "; Fraction of Neutral to Jet p_{t}; Counts", 200, 0, 1);*/
+  hJetLambda0 = new TH1D("hJetLambda0","hJetLambda0;#lambda_{0}^{1};Counts",300, 0., 1.5);
 
   effJetRec00_10 = new TEfficiency("effJetRec00_10",
     "Percentage of rec. mc jets C = 00-10%; Jet p_{T} [GeV/c];Efficiency", 200, 0, 40);
@@ -598,7 +598,7 @@ OutputTreeInit();
   cout << "Jet R = " << fJetRad << endl;
   cout << "Jet area min >= " << fJetMinAreaCut << endl;
   cout << "|eta_jet| <= " << 1. - fJetRad << endl;
-  cout << "fJetFractionNeutralToJetPt: " << fJetFractionNeutralToJetPt << endl;
+  cout << "fJetMinLambda0: " << fJetMinLambda0 << endl;
   cout << "**********" << endl;
   cout << "  Background estimation" << endl;
   switch (fBgSubtraction) {
@@ -760,11 +760,11 @@ Int_t StHIOverlayAngularities::Finish()
       "Jet R = %.2f\n"
       "Jet area min >= %.2f\n"
       "|eta_jet| <= %.2f\n"
-      "fJetFractionNeutralToJetPt: %.2f\n"
+      "fJetMinLambda0: %.2f\n"
       "**********\n",
       fJetType == 0 ? "Full jets" : fJetType == 1 ? "Charged jets" : fJetType == 2 ? "Neutral jets" : "?",
       fJetAlgo == 1 ? "anti-kt" : "Other",
-      fJetRad, fJetMinAreaCut, 1.0 - fJetRad, fJetFractionNeutralToJetPt);
+      fJetRad, fJetMinAreaCut, 1.0 - fJetRad, fJetMinLambda0);
 
     switch (fBgSubtraction) {
       case 1:
@@ -856,7 +856,7 @@ Int_t StHIOverlayAngularities::Finish()
     hJetConstPt->Write();
     hJetConstPtICS->Write();
     hJetMcRecoConstCharge->Write();
-    hFractionNeutralToJetPt->Write();
+    hJetLambda0->Write();
     effJetRec00_10->Write();
     effJetRec10_40->Write();
     effJetRec40_80->Write();
@@ -3050,6 +3050,7 @@ StJet *StHIOverlayAngularities::DoesItHaveAGoodD0Jet(vector<TLorentzVector> &eve
     //Load jet pt
     Double_t jet_pt = jets_incl[iJet].perp();
     
+    /*
     //Initialisation of neutral_pt fraction
     Double_t neutral_pt = 0.;
     
@@ -3067,13 +3068,31 @@ StJet *StHIOverlayAngularities::DoesItHaveAGoodD0Jet(vector<TLorentzVector> &eve
     hFractionNeutralToJetPt->Fill(1.*neutral_pt / jet_pt);
 
     //Neutral (D0 not cosidered) pT fraction cut
-    if (fSetJetFracCut[recoLevel] && ((neutral_pt / jet_pt) > fJetFractionNeutralToJetPt) ) continue;
+    if (fSetJetLambda0Cut[recoLevel] && ((neutral_pt / jet_pt) > fJetMinLambda0) ) continue;
+    */
+    
+    // Lambda_0^1: charged constituents + D0, normalized to vector jet pT.
+    if (!(jet_pt > 0.)) continue;
+
+    Double_t chargedD0Pt = 0.;
+
+    for (const auto& constituent : constituents) {
+        if (constituent.user_index() >= 0) {
+            chargedD0Pt += constituent.perp();
+        }
+    }
+
+    const Double_t lambda0 = chargedD0Pt / jet_pt;
+
+    hJetLambda0->Fill(lambda0);
+
+    if (fSetJetLambda0Cut[recoLevel] && lambda0 < fJetMinLambda0) continue;
 
     //Save the D0-jet
     StJet *jet = new StJet(jets_incl[D0JetIndex].perp(), jets_incl[D0JetIndex].eta(), jets_incl[D0JetIndex].phi(), jets_incl[D0JetIndex].m());
     
-    // Neutral scalar pT sum / vector jet pT; D0 excluded from numerator
-    jet->SetNEF(neutral_pt / jet_pt);
+    // Neutral scalar pT sum / vector jet pT
+    //jet->SetNEF(neutral_pt / jet_pt);
     
     if (fPrintLevel) cout << "Jet Found with pT eta phi = " << jet->Pt() << "\t" << jet->Eta() << "\t" << jet->Phi() << endl;
 
@@ -3415,6 +3434,7 @@ void StHIOverlayAngularities::OutputTreeInit()
   outputTree->Branch("mcJetArea", &fMcJetTree.jetarea, "mcJetArea/F");
   outputTree->Branch("mcJetE", &fMcJetTree.jetenergy, "mcJetE/F");
   outputTree->Branch("mcJetNConst", &fMcJetTree.numberofconstituents, "mcJetNConst/I");
+  outputTree->Branch("mcJetLambda1_0", &fMcJetTree.lambda_1_0, "mcJetLambda1_0/F");
   outputTree->Branch("mcJetLambda1_0_5", &fMcJetTree.lambda_1_half, "mcJetLambda1_0_5/F");
   outputTree->Branch("mcJetLambda1_1", &fMcJetTree.lambda_1_1, "mcJetLambda1_1/F");
   outputTree->Branch("mcJetLambda1_1_5", &fMcJetTree.lambda_1_1half, "mcJetLambda1_1_5/F");
@@ -3433,6 +3453,7 @@ void StHIOverlayAngularities::OutputTreeInit()
     outputTree->Branch("mcSmearedJetE", &fMcRecoJetTree.jetenergy, "mcSmearedJetE/F");
     outputTree->Branch("mcSmearedJetArea", &fMcRecoJetTree.jetarea, "mcSmearedJetArea/F");
     outputTree->Branch("mcSmearedJetNConst", &fMcRecoJetTree.numberofconstituents, "mcSmearedJetNConst/I");
+    outputTree->Branch("mcSmearedJetLambda1_0", &fMcRecoJetTree.lambda_1_0, "mcSmearedJetLambda1_0/F");
     outputTree->Branch("mcSmearedJetLambda1_0_5", &fMcRecoJetTree.lambda_1_half, "mcSmearedJetLambda1_0_5/F");
     outputTree->Branch("mcSmearedJetLambda1_1", &fMcRecoJetTree.lambda_1_1, "mcSmearedJetLambda1_1/F");
     outputTree->Branch("mcSmearedJetLambda1_1_5", &fMcRecoJetTree.lambda_1_1half, "mcSmearedJetLambda1_1_5/F");
@@ -3453,6 +3474,7 @@ void StHIOverlayAngularities::OutputTreeInit()
     outputTree->Branch("recoJetArea", &fRecoJetTree.jetarea, "jetarea/F");
     outputTree->Branch("recoJetE", &fRecoJetTree.jetenergy, "jetenergy/F");
     outputTree->Branch("recoJetNConst", &fRecoJetTree.numberofconstituents, "numberofconstituents/I");
+    outputTree->Branch("recoJetLambda1_0Raw",&fRecoJetTree.lambda_1_0, "recoJetLambda1_0Raw/F");
     outputTree->Branch("recoJetLambda1_0_5", &fRecoJetTree.lambda_1_half, "lambda_1_half/F");
     outputTree->Branch("recoJetLambda1_1", &fRecoJetTree.lambda_1_1, "recoJetLambda1_1/F");
     outputTree->Branch("recoJetLambda1_1_5", &fRecoJetTree.lambda_1_1half, "recoJetLambda1_1_5/F");
@@ -3473,6 +3495,7 @@ void StHIOverlayAngularities::OutputTreeInit()
     outputTree->Branch("ICS_recoJetArea", &fICS_RecoJetTree.jetarea, "ICS_jetarea/F");
     outputTree->Branch("ICS_recoJetE", &fICS_RecoJetTree.jetenergy, "ICS_jetenergy/F");
     outputTree->Branch("ICS_recoJetNConst", &fICS_RecoJetTree.numberofconstituents, "ICS_numberofconstituents/I");
+    outputTree->Branch("ICS_recoJetLambda1_0", &fICS_RecoJetTree.lambda_1_0, "ICS_recoJetLambda1_0/F");
     outputTree->Branch("ICS_recoJetLambda1_0_5", &fICS_RecoJetTree.lambda_1_half, "ICS_lambda_1_half/F");
     outputTree->Branch("ICS_recoJetLambda1_1", &fICS_RecoJetTree.lambda_1_1, "ICS_recoJetLambda1_1/F");
     outputTree->Branch("ICS_recoJetLambda1_1_5", &fICS_RecoJetTree.lambda_1_1half, "ICS_recoJetLambda1_1_5/F");
@@ -3975,7 +3998,8 @@ void StHIOverlayAngularities::FillJet(StJet *jet, StJetTreeStruct &jetTree, cons
   jetTree.jetenergy = jet->E();
   jetTree.jetrapidity = jet->Y();
   jetTree.jetmass = jet->M();
-  jetTree.jetnef = jet->NEF();
+  //jetTree.jetnef = jet->NEF();
+  jetTree.lambda_1_0 = jet->GetAngularityLambda(1., 0., 0.4);
   jetTree.numberofconstituents = jet->GenNumberOfCons(false, false); //false = ignore ghost particles and particles with pT < 0.00001
   jetTree.lambda_1_half = jet->GetAngularityLambda(1., 0.5, 0.4);
   jetTree.lambda_1_1 = jet->GetAngularityLambda(1., 1., 0.4);

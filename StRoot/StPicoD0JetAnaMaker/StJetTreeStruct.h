@@ -99,6 +99,7 @@ struct StJetTreeStruct
     float kaonphi;
     float kaoncharge;
 
+    float lambda_1_0;
     float lambda_1_half;
     float lambda_1_1;
     float lambda_1_1half;
@@ -182,6 +183,7 @@ struct StJetTreeStruct
         kaonphi = -999;
         kaoncharge = -999;
 
+        lambda_1_0 = -999;
 	lambda_1_half = -999;
         lambda_1_1 = -999;
         lambda_1_1half = -999;

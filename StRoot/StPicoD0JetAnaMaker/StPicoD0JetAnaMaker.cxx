@@ -126,7 +126,8 @@ void StPicoD0JetAnaMaker::findAllD0Jets(const std::vector<fastjet::PseudoJet>& c
             Double_t lambda_1_2 = 0;
             Double_t lambda_1_3 = 0;
             Double_t lambda_2_0 = 0;
-            Double_t neutralpT = 0;
+            //Double_t neutralpT = 0;
+            Double chargedD0Pt = 0.;
 
             //Calculate the jet pT + background subtraction (= _corr)
             //pT(sub) = pT - rho * A_jet
@@ -170,8 +171,9 @@ void StPicoD0JetAnaMaker::findAllD0Jets(const std::vector<fastjet::PseudoJet>& c
                 //Constituent counter
                 if(particle->pt() > 0.001) ConstCounter++;
                 
-                //Fraction of neutral particles
-                if (abs(index) == 10) neutralpT += particle->pt();
+                //Fraction of D0 and charged particles
+                //if (abs(index) == 10) neutralpT += particle->pt();
+                if (index >= 0) chargedD0Pt += particle->pt();
                 
                 //Calculating the delta R = sqrt(delta eta^2 + delta phi^2)
                 Double_t Delta_R =delta_R(corrected_jets[i].eta(),corrected_jets[i].phi(),particle->eta(),particle->phi());
@@ -203,10 +205,12 @@ void StPicoD0JetAnaMaker::findAllD0Jets(const std::vector<fastjet::PseudoJet>& c
             } //End of loop over all constituents of the i-th jet
 
             //Calculation of the fraction of neutral particles
-            Double_t nfraction = 1.*neutralpT/pT_jet;
+            //Double_t nfraction = 1.*neutralpT/pT_jet;
+            Double_t lambda0 = chargedD0Pt / pT_jet;
 
             //If the fraction is too high, jet is rejected (Parameter is saved in RunPicoD0AnaMaker.C as setMaxNeutralFraction)
-            if (fSetJetMaxNeutralPtFrac && (nfraction > fJetMaxNeutralPtFrac) ) continue;
+            //if (fSetJetMinLambda0 && (nfraction > fJetMinLambda0) ) continue;
+            if (fSetJetMinLambda0 && lambda0 < fJetMinLambda0) continue;
             
             //if (area_jet < fAcuts) continue; //Not implemented
 
@@ -235,7 +239,8 @@ void StPicoD0JetAnaMaker::findAllD0Jets(const std::vector<fastjet::PseudoJet>& c
                   z                 = zet;
                   nJetConst         = ConstCounter;
                   jetD0DeltaR       = Delta_R_D0;
-                  jetNeutralPtFrac  = nfraction;
+                  //jetNeutralPtFrac  = nfraction;
+                  lambda1_0Raw      = lambda0;
                   jetTrackPtSum     = pT_jet_scalar;
 
                 } else if (AlgoType ==1){ //ICS
@@ -255,7 +260,8 @@ void StPicoD0JetAnaMaker::findAllD0Jets(const std::vector<fastjet::PseudoJet>& c
                   ICS_z                 = zet;
                   ICS_nJetConst         = ConstCounter;
                   ICS_jetD0DeltaR       = Delta_R_D0;
-                  ICS_jetNeutralPtFrac  = nfraction;
+                  //ICS_jetNeutralPtFrac  = nfraction;
+                  ICS_lambda1_0         = lambda0;
                   ICS_jetTrackPtSum     = pT_jet_scalar;
 
                 } 
@@ -397,7 +403,7 @@ Int_t StPicoD0JetAnaMaker::Init(){
 	cout << "Jets" << endl;
 	cout << "Jet R = " << fJetRadius << endl;
 	cout << (fSetJetEta  == true ? Form("abs(eta) <= %.1f",fJetEta) : fSetJetEta  == false ? "Jet eta cut not applied" : "Weird") << endl;
-	cout << (fSetJetMaxNeutralPtFrac  == true ? Form("p_{T}^{neutral}/p_{T,Jet} <= %.2f",fJetMaxNeutralPtFrac) : fSetJetMaxNeutralPtFrac  == false ? "Neutral pT fraction cut not applied" : "Weird") << endl;
+	cout << (fSetJetMinLambda0  == true ? Form("p_{T}^{neutral}/p_{T,Jet} <= %.2f",fJetMinLambda0) : fSetJetMinLambda0  == false ? "Neutral pT fraction cut not applied" : "Weird") << endl;
 	
 	cout << "Bg. subtraction: " << (fSetJetBgSub  == false ? "false" : 
 					(fJetBgSubMethod  == 1 || fJetBgSubMethod  == 21 || fJetBgSubMethod  == 12) ? "Area based method + Jet shape method" :
@@ -459,7 +465,8 @@ Int_t StPicoD0JetAnaMaker::Init(){
     Jets->Branch("z", &z, "z/F");
     Jets->Branch("nJetConst", &nJetConst, "nJetConst/I");
     Jets->Branch("jetD0DeltaR", &jetD0DeltaR, "jetD0DeltaR/F");
-    Jets->Branch("jetNeutralPtFrac", &jetNeutralPtFrac, "jetNeutralPtFrac/F");
+    //Jets->Branch("jetNeutralPtFrac", &jetNeutralPtFrac, "jetNeutralPtFrac/F");
+    Jets->Branch("lambda1_0Raw", &lambda1_0Raw, "lambda1_0Raw/F");
     Jets->Branch("jetTrackPtSum", &jetTrackPtSum, "jetTrackPtSum/F");
   }
   //ICS
@@ -480,7 +487,8 @@ Int_t StPicoD0JetAnaMaker::Init(){
     Jets->Branch("ICS_z", &ICS_z, "ICS_z/F");
     Jets->Branch("ICS_nJetConst", &ICS_nJetConst, "ICS_nJetConst/I");
     Jets->Branch("ICS_jetD0DeltaR", &ICS_jetD0DeltaR, "ICS_jetD0DeltaR/F");
-    Jets->Branch("ICS_jetNeutralPtFrac", &ICS_jetNeutralPtFrac, "ICS_jetNeutralPtFrac/F");
+    //Jets->Branch("ICS_jetNeutralPtFrac", &ICS_jetNeutralPtFrac, "ICS_jetNeutralPtFrac/F");
+    Jets->Branch("ICS_lambda1_0", &ICS_lambda1_0, "ICS_lambda1_0/F");
     Jets->Branch("ICS_jetTrackPtSum", &ICS_jetTrackPtSum, "ICS_jetTrackPtSum/F");
   }
 
@@ -1243,6 +1251,20 @@ Int_t StPicoD0JetAnaMaker::Make() {
         fjw->AddInputVectors(input_particles);                 
         fjw->runAreaBgAndAreaShapeMethod();
           
+        jetEta = jetPhi = jetRapidity = jetArea = -999.f;
+        jetPt = jetPtCorr = jetE = jetMass = -999.f;
+        lambda1_0Raw = lambda1_0_5 = lambda1_1 = -999.f;
+        lambda1_1_5 = lambda1_2 = lambda1_3 = -999.f;
+        momDisp = z = jetD0DeltaR = jetTrackPtSum = -999.f;
+        nJetConst = 0;
+
+        ICS_jetEta = ICS_jetPhi = ICS_jetRapidity = ICS_jetArea = -999.f;
+        ICS_jetPt = ICS_jetE = ICS_jetMass = -999.f;
+        ICS_lambda1_0 = ICS_lambda1_0_5 = ICS_lambda1_1 = -999.f;
+        ICS_lambda1_1_5 = ICS_lambda1_2 = ICS_lambda1_3 = -999.f;
+        ICS_momDisp = ICS_z = ICS_jetD0DeltaR = ICS_jetTrackPtSum = -999.f;
+        ICS_nJetConst = 0;  
+          
         //Get all jets
         corrected_jets = fjw->GetInclusiveJets();
         backgroundDensity = fjw->GetJetRho();
@@ -1282,7 +1304,7 @@ Int_t StPicoD0JetAnaMaker::Make() {
       }
         
       //Fill the tree
-      Jets->Fill();
+      if (nJetConst > 0 || ICS_nJetConst > 0) Jets->Fill();
         
       //Delete vectors to avoid a pileup
       corrected_jets.clear();

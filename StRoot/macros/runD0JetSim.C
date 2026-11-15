@@ -170,7 +170,7 @@ void runD0JetSim(const Char_t *inputFile = "",
     HIOverlayMaker->DoTrackingEfficiency(1.);
     
     //Different level cuts                       	//mc	     //mcSmeared      //reco     //value
-    HIOverlayMaker->setJetFractionNeutralToJetPt(	false, 		false, 		false,	    0.95    	); //
+    HIOverlayMaker->setJetMinLambda0(	false, 		false, 		false,	    0.05    	); //
     HIOverlayMaker->setJetMinPt(			false, 		false, 		false,	    1       	); // >= [GeV/c]
     HIOverlayMaker->setJetMinArea(			false, 		false, 		false,	    0      	); // >= value*pi*R^2
     HIOverlayMaker->setJetMinAbsEta(			false, 		false, 		false,	 1.-jetRadius   ); // abs(value) <= 

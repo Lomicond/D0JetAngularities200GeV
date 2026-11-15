@@ -171,7 +171,7 @@ void runD0JetAna(string pico="testPico.list",
    Double_t jetRadius = 0.4;
    picoD0JetAnaMaker->setJetRadius(jetRadius); // Jet resolution parameter
    picoD0JetAnaMaker->setJetEta(false, 1.0 - jetRadius); // false = not used; abs(eta) <= //Postponed to later analysis
-   picoD0JetAnaMaker->setJetMaxNeutralPtFrac(false, 0.95); // false = not used; abs(eta) <= //Postponed to later analysis
+   picoD0JetAnaMaker->setJetMinLambda0(false, 0.05); // false = not used; abs(eta) <= //Postponed to later analysis
    
    //Fastjet
    picoD0JetAnaMaker->setJetFixedSeed(false, 12345); // false = random seed, true = second parameter is the seed

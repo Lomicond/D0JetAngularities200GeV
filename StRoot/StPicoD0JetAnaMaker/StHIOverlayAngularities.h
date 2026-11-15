@@ -127,8 +127,8 @@ protected:
   // Jet Cuts
   Double_t fGhostArea;  // ghost area
   Double_t fJetRad;     // jet radius
-  Bool_t fSetJetFracCut[3];
-  Double_t fJetFractionNeutralToJetPt = 0.95;
+  Bool_t fSetJetLambda0Cut[3];
+  Double_t fJetMinLambda0 = 0.05;
   Bool_t fSetJetMinPtCut[3];
   Double_t fJetMinPtCut = 1;
   Bool_t fSetJetMinAreaCut[3];
@@ -250,11 +250,11 @@ public:
 
   virtual void SetMcD0Mass(Double_t McD0Mass) { fMcD0Mass = McD0Mass; }
   virtual void setAllMcSeedsToEventId(Bool_t McSeed) { fSetMcSeed = McSeed; }
-  virtual void setJetFractionNeutralToJetPt(Bool_t setJetFracCut0, Bool_t setJetFracCut1, Bool_t setJetFracCut2, Double_t jetFractionNeutralToJetPt) {
-    fSetJetFracCut[0] = setJetFracCut0;
-    fSetJetFracCut[1] = setJetFracCut1;
-    fSetJetFracCut[2] = setJetFracCut2;
-    fJetFractionNeutralToJetPt = jetFractionNeutralToJetPt;
+  virtual void setJetMinLambda0(Bool_t setJetFracCut0, Bool_t setJetFracCut1, Bool_t setJetFracCut2, Double_t jetFractionNeutralToJetPt) {
+    fSetJetLambda0Cut[0] = setJetFracCut0;
+    fSetJetLambda0Cut[1] = setJetFracCut1;
+    fSetJetLambda0Cut[2] = setJetFracCut2;
+    fJetMinLambda0 = jetFractionNeutralToJetPt;
   } // !!!TODO
   virtual void setJetMinPt(Bool_t setJetMinPtCut0, Bool_t setJetMinPtCut1, Bool_t setJetMinPtCut2, Double_t jetMinPtCut) {
     fSetJetMinPtCut[0] = setJetMinPtCut0;
@@ -698,7 +698,7 @@ public:
   TH2D *hResponseJetD0DeltaR;
   TH2D *hResponseJetD0Pt;
 
-  TH1D *hFractionNeutralToJetPt;
+  TH1D *hJetLambda0;
 
   // position objection
   StEmcGeom *mBemcGeom;
