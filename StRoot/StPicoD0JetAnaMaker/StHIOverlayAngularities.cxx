@@ -1274,8 +1274,6 @@ if (fRunNumber != previousPedestalRun) {
       cout << "Size of randomEventList = " << randomEventList.size() << endl;
     }
     
-    if (randomEventList.size() > static_cast<size_t>(nMcEvents)) continue;
-    
 
     fMCPico->GetEntry(randomMcEvent); // load this MC event into memory
     
@@ -1580,7 +1578,8 @@ if (fRunNumber != previousPedestalRun) {
 		Double_t pz = v.Z();
 		Double_t p = v.P();
 		Double_t energy = 1.0 * TMath::Sqrt(p * p + fMcNeutralPart*fMcNeutralPart); 
-		fjw->AddInputVector(px, py, pz, energy, iTower + 20000); // includes E
+		//fjw->AddInputVector(px, py, pz, energy, iTower + 20000); // includes E
+		fjw->AddInputVector(px, py, pz, energy, -10000 - static_cast<Int_t>(iTower)); //MC tower range uid <=-10000
 		
 	      } //End of the tower loop        
       }                          
@@ -1664,7 +1663,8 @@ if (fRunNumber != previousPedestalRun) {
         Double_t pz = v.Z();
         Double_t p = v.P();
       	Double_t energy = 1.0 * TMath::Sqrt(p * p + fMcNeutralPart*fMcNeutralPart);
-        fjw->AddInputVector(px, py, pz, energy, iTowers + 20000); //  //  20k-30k is Mc tower range
+        //fjw->AddInputVector(px, py, pz, energy, iTowers + 20000); //  //  20k-30k is Mc tower range
+        fjw->AddInputVector(px, py, pz, energy, -10000 - static_cast<Int_t>(iTowers)); //MC tower range uid <=-10000
       }
       }                                                           // tower loop
 
