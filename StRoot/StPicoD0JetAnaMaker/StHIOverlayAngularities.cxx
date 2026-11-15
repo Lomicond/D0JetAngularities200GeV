@@ -2878,14 +2878,43 @@ Int_t StHIOverlayAngularities::GetMatchedBtowID(StPicoTrack *trk)
   return tow_id;
 }
 */
+Bool_t StHIOverlayAngularities::KeepTrack(const Int_t &particleid, const Int_t &centralitybin, const Double_t &pt){
+    
+    Double_t keepProbability = 1.0;
+
+    if (particleid == 1 || particleid == -1)        keepProbability = fPionWeight[centralitybin]->Eval(pt);
+    else if (particleid == 2 || particleid == -2)   keepProbability = fKaonWeight[centralitybin]->Eval(pt);
+    else if (particleid == 3)                       keepProbability = fProtonWeight[centralitybin]->Eval(pt);
+    else if (particleid == -3)                      keepProbability = fAProtonWeight[centralitybin]->Eval(pt);
+
+    // Nominal probability must lie within [0, 1].
+    if (keepProbability < 0.0) keepProbability = 0.0;
+    if (keepProbability > 1.0) keepProbability = 1.0;
+
+    // Relative tracking-efficiency variation.
+    if (fTrackingEfficiency) keepProbability *= fTrackingEfficiencyPercentage;
+
+    if (keepProbability < 0.0) keepProbability = 0.0;
+    if (keepProbability > 1.0) keepProbability = 1.0;
+
+    Bool_t keeptrack = fTrackRandom.Rndm() < keepProbability;
+
+    return keeptrack;
+}
+
+
+/*
 Bool_t StHIOverlayAngularities::KeepTrack(const Int_t &particleid, const Int_t &centralitybin, const Double_t &pt)
 {
+
   Bool_t keeptrack = kTRUE;
+  */
  /*
  TRandom3 *r = new TRandom3(fMcSeed);
   r->SetSeed(fMcSeed);
   Double_t rando = r->Rndm();
   */
+  /*
   const Double_t rando = fTrackRandom.Rndm();
   
   if (particleid == 1 || particleid == -1)
@@ -2900,13 +2929,14 @@ Bool_t StHIOverlayAngularities::KeepTrack(const Int_t &particleid, const Int_t &
   {
     if (fTrackingEfficiency)
     {
-      keeptrack = (rando > fTrackingEfficiencyPercentage) ? kFALSE : kTRUE;
+      //keeptrack = (rando > fTrackingEfficiencyPercentage) ? kFALSE : kTRUE;
+      keeptrack = (fTrackRandom.Rndm() < fTrackingEfficiencyPercentage);
     }
   }
   //delete r;
   return keeptrack;
 }
-
+*/
 
 StJet *StHIOverlayAngularities::DoesItHaveAGoodD0Jet(vector<TLorentzVector> &eventTracks, Int_t recoLevel, Int_t bgSubtraction)
 {
