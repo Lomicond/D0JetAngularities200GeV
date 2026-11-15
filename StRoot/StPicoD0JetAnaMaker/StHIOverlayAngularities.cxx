@@ -3506,7 +3506,7 @@ void StHIOverlayAngularities::OutputTreeInit()
     outputTree->Branch("ICS_recoJetD0DeltaR", &fICS_RecoJetTree.d0DeltaR, "ICS_recoJetD0DeltaR/F");
     outputTree->Branch("ICS_recoJetRapidity", &fICS_RecoJetTree.jetrapidity, "ICS_recoJetRapidity/F");
     outputTree->Branch("ICS_recoJetMass", &fICS_RecoJetTree.jetmass, "ICS_recoJetMass/F");
-    outputTree->Branch("ICS_recoJetNeutralPtFrac", &fICS_RecoJetTree.jetnef, "ICS_recoJetNeutralPtFrac/F");
+    //outputTree->Branch("ICS_recoJetNeutralPtFrac", &fICS_RecoJetTree.jetnef, "ICS_recoJetNeutralPtFrac/F");
 
   }
   

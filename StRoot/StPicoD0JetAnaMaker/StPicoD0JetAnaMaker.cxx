@@ -133,6 +133,7 @@ void StPicoD0JetAnaMaker::findAllD0Jets(const std::vector<fastjet::PseudoJet>& c
             //pT(sub) = pT - rho * A_jet
             //Since z-value requires px and py, it is calculated as well
             Double_t pT_jet = corrected_jets[i].perp();
+            if (!(pT_jet > 0.)) continue;
             Double_t pT_jet_corr = -999;
             if (AlgoType == 1) pT_jet_corr = pT_jet; //ICS
             else if (AlgoType == 0 || AlgoType == 2) pT_jet_corr = pT_jet - backgroundDensity * corrected_jets[i].area_4vector().perp(); //Area+Shape
@@ -403,8 +404,8 @@ Int_t StPicoD0JetAnaMaker::Init(){
 	cout << "Jets" << endl;
 	cout << "Jet R = " << fJetRadius << endl;
 	cout << (fSetJetEta  == true ? Form("abs(eta) <= %.1f",fJetEta) : fSetJetEta  == false ? "Jet eta cut not applied" : "Weird") << endl;
-	cout << (fSetJetMinLambda0  == true ? Form("p_{T}^{neutral}/p_{T,Jet} <= %.2f",fJetMinLambda0) : fSetJetMinLambda0  == false ? "Neutral pT fraction cut not applied" : "Weird") << endl;
-	
+	//cout << (fSetJetMinLambda0  == true ? Form("p_{T}^{neutral}/p_{T,Jet} <= %.2f",fJetMinLambda0) : fSetJetMinLambda0  == false ? "Neutral pT fraction cut not applied" : "Weird") << endl;
+	cout << (fSetJetMinLambda0 ? Form("lambda_0^1 >= %.2f", fJetMinLambda0) : "lambda_0^1 cut not applied") << endl;
 	cout << "Bg. subtraction: " << (fSetJetBgSub  == false ? "false" : 
 					(fJetBgSubMethod  == 1 || fJetBgSubMethod  == 21 || fJetBgSubMethod  == 12) ? "Area based method + Jet shape method" :
 					(fJetBgSubMethod  == 2 || fJetBgSubMethod  == 21 || fJetBgSubMethod  == 12) ? "ICS" :
@@ -1231,6 +1232,20 @@ Int_t StPicoD0JetAnaMaker::Make() {
       d0Phi         = d0Meson4V.Phi();
       nJetsInEvent  = D0_fourmomentum.size();
 
+        jetEta = jetPhi = jetRapidity = jetArea = -999.f;
+        jetPt = jetPtCorr = jetE = jetMass = -999.f;
+        lambda1_0Raw = lambda1_0_5 = lambda1_1 = -999.f;
+        lambda1_1_5 = lambda1_2 = lambda1_3 = -999.f;
+        momDisp = z = jetD0DeltaR = jetTrackPtSum = -999.f;
+        nJetConst = 0;
+
+        ICS_jetEta = ICS_jetPhi = ICS_jetRapidity = ICS_jetArea = -999.f;
+        ICS_jetPt = ICS_jetE = ICS_jetMass = -999.f;
+        ICS_lambda1_0 = ICS_lambda1_0_5 = ICS_lambda1_1 = -999.f;
+        ICS_lambda1_1_5 = ICS_lambda1_2 = ICS_lambda1_3 = -999.f;
+        ICS_momDisp = ICS_z = ICS_jetD0DeltaR = ICS_jetTrackPtSum = -999.f;
+        ICS_nJetConst = 0;  
+
       vector<fastjet::PseudoJet> corrected_jets, ICS_corrected_jets;
       
       //----------------------------Area+Shape---------------
@@ -1250,20 +1265,6 @@ Int_t StPicoD0JetAnaMaker::Make() {
         
         fjw->AddInputVectors(input_particles);                 
         fjw->runAreaBgAndAreaShapeMethod();
-          
-        jetEta = jetPhi = jetRapidity = jetArea = -999.f;
-        jetPt = jetPtCorr = jetE = jetMass = -999.f;
-        lambda1_0Raw = lambda1_0_5 = lambda1_1 = -999.f;
-        lambda1_1_5 = lambda1_2 = lambda1_3 = -999.f;
-        momDisp = z = jetD0DeltaR = jetTrackPtSum = -999.f;
-        nJetConst = 0;
-
-        ICS_jetEta = ICS_jetPhi = ICS_jetRapidity = ICS_jetArea = -999.f;
-        ICS_jetPt = ICS_jetE = ICS_jetMass = -999.f;
-        ICS_lambda1_0 = ICS_lambda1_0_5 = ICS_lambda1_1 = -999.f;
-        ICS_lambda1_1_5 = ICS_lambda1_2 = ICS_lambda1_3 = -999.f;
-        ICS_momDisp = ICS_z = ICS_jetD0DeltaR = ICS_jetTrackPtSum = -999.f;
-        ICS_nJetConst = 0;  
           
         //Get all jets
         corrected_jets = fjw->GetInclusiveJets();
