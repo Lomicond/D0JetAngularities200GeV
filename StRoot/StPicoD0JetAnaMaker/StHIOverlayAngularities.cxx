@@ -1258,14 +1258,18 @@ if (fRunNumber != previousPedestalRun) {
   //How many times is one event used
   while (counterEvent < fNumberOfEventsToOverLay){
   
+    if (nMcEvents <= 0 || randomEventList.size() >= static_cast<size_t>(nMcEvents)){
+        LOG_WARN << "MC file exhausted: accepted " << counterEvent << " D0 overlays, requested " << fNumberOfEventsToOverLay << endm;
+        break;
+    }
+  
     Int_t randomMcEvent = ran.Integer(nMcEvents);
     
     if (std::find(randomEventList.begin(), randomEventList.end(), randomMcEvent) != randomEventList.end()) continue;
       
     randomEventList.push_back(randomMcEvent);
     
-    if (fPrintLevel)
-    {
+    if (fPrintLevel){
       cout << randomEventList.back() << endl;
       cout << "Size of randomEventList = " << randomEventList.size() << endl;
     }
@@ -3649,10 +3653,6 @@ void StHIOverlayAngularities::FillTree(const Int_t &numberOfD0Events)
 	   if (centralitybinforefficiency==0) etaRecoTrue00_10->Fill(responseReco.jeteta, fMcJetTree.jeteta);
 	   if (centralitybinforefficiency==1) etaRecoTrue10_40->Fill(responseReco.jeteta, fMcJetTree.jeteta);
 	   if (centralitybinforefficiency==2) etaRecoTrue40_80->Fill(responseReco.jeteta, fMcJetTree.jeteta);
-	   
-	   if (centralitybinforefficiency==0) effJetRec00_10->Fill(true, fMcJetTree.jetpt);
-		   else if (centralitybinforefficiency==1) effJetRec10_40->Fill(true, fMcJetTree.jetpt);
-		   else if (centralitybinforefficiency==2) effJetRec40_80->Fill(true, fMcJetTree.jetpt);
 		   
       } //End of the condition: If jet was found
       

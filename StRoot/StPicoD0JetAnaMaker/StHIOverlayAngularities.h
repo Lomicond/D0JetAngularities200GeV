@@ -211,7 +211,7 @@ protected:
 private:
   StRefMultCorr* mGRefMultCorrUtil;
   StCentMaker *mCentMaker;  // Centrality maker object
-  TRandom3 fTrackRandom;
+  TRandom3 fTrackRandom; //
 
 public:
   StHIOverlayAngularities(const char *name, StPicoDstMaker *picoMaker, const char *outName, const char *filename, StRefMultCorr* grefmultCorrUtil);
