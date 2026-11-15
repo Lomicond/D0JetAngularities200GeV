@@ -205,8 +205,6 @@ Int_t StHIOverlayAngularities::Init()
 {
   fastjet::ClusterSequence::print_banner();
   
-  fTrackRandom.SetSeed(fMcSeed);
-  
   mBemcGeom = StEmcGeom::instance("bemc");
   mEmcPosition = new StEmcPosition();
 
@@ -1113,7 +1111,10 @@ if (fRunNumber != previousPedestalRun) {
 } else return kStOK;
   */
   fMcSeed = 0; //0 = random
-  if(fSetMcSeed) fMcSeed = fRunNumber + mPicoEvent->eventId();
+  if(fSetMcSeed) {
+    fMcSeed = fRunNumber + mPicoEvent->eventId();
+    fTrackRandom.SetSeed(fMcSeed);
+  }
   
   
   // get event B (magnetic) field
@@ -3176,20 +3177,21 @@ TVector3 StHIOverlayAngularities::FastSimMom(TVector3 p, Int_t pid)
     pt1 = 10; // Used for high pt-hat bin smearing test
   float sPt = -1;
 
-  TRandom3 *r = new TRandom3(fMcSeed);
-  r->SetSeed(fMcSeed);
+  //TRandom3 *r = new TRandom3(fMcSeed);
+  //r->SetSeed(fMcSeed);
+  
 
   if (pid == 8 || pid == 9)
-    sPt = r->Gaus(pt, pt * fPionMomResolution->Eval(pt1)); // Pion
+    sPt = fTrackRandom.Gaus(pt, pt * fPionMomResolution->Eval(pt1)); // Pion
   else if (pid == 11 || pid == 12)
-    sPt = r->Gaus(pt, pt * fKaonMomResolution->Eval(pt1)); // Kaon
+    sPt = fTrackRandom.Gaus(pt, pt * fKaonMomResolution->Eval(pt1)); // Kaon
   else if (pid == 15 || pid == 14)
-    sPt = r->Gaus(pt, pt * fProtonMomResolution->Eval(pt1)); // Proton
+    sPt = fTrackRandom.Gaus(pt, pt * fProtonMomResolution->Eval(pt1)); // Proton
   else
-    sPt = r->Gaus(pt, pt * fPionMomResolution->Eval(pt1)); // Catch all: pions
+    sPt = fTrackRandom.Gaus(pt, pt * fPionMomResolution->Eval(pt1)); // Catch all: pions
 
   TVector3 smearedmom(sPt * cos(p.Phi()), sPt * sin(p.Phi()), sPt * sinh(p.PseudoRapidity()));
-  delete r;
+  //delete r;
   return smearedmom;
 }
 
