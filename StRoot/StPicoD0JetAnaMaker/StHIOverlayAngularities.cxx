@@ -73,7 +73,7 @@ StHIOverlayAngularities::StHIOverlayAngularities(const char *name,
                                                  const char *outName, 
                                                  const char *filename, 
                                                  StRefMultCorr* grefmultCorrUtil) 
-  : mGRefMultCorrUtil(grefmultCorrUtil)
+  : mGRefMultCorrUtil(grefmultCorrUtil), fTrackRandom(0)
 {
   if (!name) return;
   
@@ -204,6 +204,8 @@ StHIOverlayAngularities::~StHIOverlayAngularities()
 Int_t StHIOverlayAngularities::Init()
 {
   fastjet::ClusterSequence::print_banner();
+  
+  fTrackRandom.SetSeed(fMcSeed);
   
   mBemcGeom = StEmcGeom::instance("bemc");
   mEmcPosition = new StEmcPosition();
@@ -2878,9 +2880,13 @@ Int_t StHIOverlayAngularities::GetMatchedBtowID(StPicoTrack *trk)
 Bool_t StHIOverlayAngularities::KeepTrack(const Int_t &particleid, const Int_t &centralitybin, const Double_t &pt)
 {
   Bool_t keeptrack = kTRUE;
-  TRandom3 *r = new TRandom3(fMcSeed);
+ /*
+ TRandom3 *r = new TRandom3(fMcSeed);
   r->SetSeed(fMcSeed);
   Double_t rando = r->Rndm();
+  */
+  const Double_t rando = fTrackRandom.Rndm();
+  
   if (particleid == 1 || particleid == -1)
     keeptrack = (rando > fPionWeight[centralitybin]->Eval(pt)) ? kFALSE : kTRUE; // Either a pion
   else if (particleid == 2 || particleid == -2)
@@ -2896,7 +2902,7 @@ Bool_t StHIOverlayAngularities::KeepTrack(const Int_t &particleid, const Int_t &
       keeptrack = (rando > fTrackingEfficiencyPercentage) ? kFALSE : kTRUE;
     }
   }
-  delete r;
+  //delete r;
   return keeptrack;
 }
 
@@ -3454,8 +3460,8 @@ void StHIOverlayAngularities::FillTree(const Int_t &numberOfD0Events)
    //// cerr << "----------------------------------------------" << endl;
     ////cout << "mPicoDst->event()->eventId(): " << mPicoDst->event()->eventId() << endl;
 
-  for (Int_t iMcD0Event = 0; iMcD0Event < numberOfD0Events; iMcD0Event++)
-  {
+  //Loop over all MC events
+  for (Int_t iMcD0Event = 0; iMcD0Event < numberOfD0Events; iMcD0Event++){
 
     fMcJetTree.Clear();
     fRecoJetTree.Clear();
@@ -3623,10 +3629,12 @@ void StHIOverlayAngularities::FillTree(const Int_t &numberOfD0Events)
       else if (centralitybinforefficiency == 2) effJetRec40_80->Fill(jetFound, fMcJetTree.jetpt);
     
     
-  }
+  }//End of the loop over all MC events
       if (fPrintLevel) cout << "Filling Tree complete" << endl;
-  }
-
+  }//End of function
+  
+  
+  //___________________________________________________________________
   Double_t StHIOverlayAngularities::GetTowerCalibEnergy(Int_t TowerId){
   //Function calculates the calibrated energy of a tower
 
