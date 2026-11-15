@@ -127,7 +127,7 @@ void StPicoD0JetAnaMaker::findAllD0Jets(const std::vector<fastjet::PseudoJet>& c
             Double_t lambda_1_3 = 0;
             Double_t lambda_2_0 = 0;
             //Double_t neutralpT = 0;
-            Double chargedD0Pt = 0.;
+            Double_t chargedD0Pt = 0;
 
             //Calculate the jet pT + background subtraction (= _corr)
             //pT(sub) = pT - rho * A_jet
